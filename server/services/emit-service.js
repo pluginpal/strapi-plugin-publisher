@@ -12,6 +12,7 @@ module.exports = ({ strapi }) => ({
 			model,
 			entity
 		);
+		console.log('emit', event, sanitizedEntity);
 
 		strapi.eventHub.emit(event, {
 			model: model.modelName,
