@@ -52,6 +52,7 @@ module.exports = ({ strapi }) => ({
 	 *
 	 */
 	async toggle(record, mode) {
+		console.log('toggle record', record);
 		// handle single content type, id is always 1
 		const entityId = record.entityId || 1;
 
@@ -59,11 +60,13 @@ module.exports = ({ strapi }) => ({
 
 		// ensure entity exists before attempting mutations.
 		if (!entity) {
+			console.error(`Entity ${record.entitySlug} with id ${entityId} not found`);
 			return;
 		}
 
 		// ensure entity is in correct publication status
 		if (!entity.publishedAt && mode === 'publish') {
+			console.log('publishing', record.entitySlug, entityId);
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});

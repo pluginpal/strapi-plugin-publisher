@@ -21,6 +21,7 @@ module.exports = {
 							},
 						},
 					});
+					console.log('records found during cron check', records);
 
 					// process action records
 					for (const record of records.results) {
