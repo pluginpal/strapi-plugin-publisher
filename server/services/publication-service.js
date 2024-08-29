@@ -61,6 +61,8 @@ module.exports = ({ strapi }) => ({
 		// ensure entity exists before attempting mutations.
 		if (!entity) {
 			console.error(`Entity ${record.entitySlug} with id ${entityId} not found`);
+			// remove any used actions related to deleted entity
+		    strapi.entityService.delete(actionUId, record.id);
 			return;
 		}
 
