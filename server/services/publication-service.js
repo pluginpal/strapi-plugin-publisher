@@ -59,6 +59,8 @@ module.exports = ({ strapi }) => ({
 
 		// ensure entity exists before attempting mutations.
 		if (!entity) {
+			// remove any used actions related to non-existent entity
+		    strapi.entityService.delete(actionUId, record.id);
 			return;
 		}
 
