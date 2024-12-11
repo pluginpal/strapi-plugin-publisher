@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useRBAC, useCMEditViewDataManager, useNotification } from '@strapi/helper-plugin';
+import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin/hooks';
+import { useRBAC, useNotification } from '@strapi/strapi/admin';
 import PropTypes from 'prop-types';
 import { usePublisher } from '../../hooks/usePublisher';
-import { Stack } from '@strapi/design-system';
+import { Flex } from '@strapi/design-system';
 import ActionTimePicker from './ActionDateTimePicker';
 import ActionButtons from './ActionButtons/ActionButtons';
 import { ValidationError } from 'yup';
-import { getTrad } from '../../utils/getTrad';
 import { createYupSchema } from '../../utils/schema';
 
 const Action = ({ mode, entityId, entitySlug }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
-	const entity = useCMEditViewDataManager();
-	const toggleNotification = useNotification();
+	const { form: { initialValues, values: modifiedData } } = useContentManagerContext();
+	const { toggleNotification } = useNotification();
 	const [actionId, setActionId] = useState(0);
 	const [isEditing, setIsEditing] = useState(false);
 	const [executeAt, setExecuteAt] = useState(0);
@@ -22,11 +22,11 @@ const Action = ({ mode, entityId, entitySlug }) => {
 
 	let schema;
 	if (mode === 'publish') {
-		const currentContentTypeLayout = entity.allLayoutData.contentType || {};
+		const currentContentTypeLayout = modifiedData.layout || {};
 		schema = createYupSchema(
 			currentContentTypeLayout,
-			{ components: entity.allLayoutData.components || {} },
-			{ isCreatingEntry: entity.isCreatingEntry, isDraft: false, isFromComponent: false }
+			{ components: modifiedData.components || {} },
+			{ isCreatingEntry: modifiedData.isCreatingEntry, isDraft: false, isFromComponent: false },
 		);
 	}
 
@@ -50,7 +50,7 @@ const Action = ({ mode, entityId, entitySlug }) => {
 		entitySlug,
 	});
 
-	// set initial data to state so its reactive
+	// set initial data to state so it's reactive
 	useEffect(() => {
 		setIsLoading(true);
 		if (!isLoadingAction && !isRefetchingAction) {
@@ -83,7 +83,7 @@ const Action = ({ mode, entityId, entitySlug }) => {
 		setIsLoading(true);
 		try {
 			if (mode === 'publish' && schema) {
-				await schema.validate(entity.initialData, { abortEarly: false });
+				await schema.validate(modifiedData, { abortEarly: false });
 			}
 
 			if (!actionId) {
@@ -103,17 +103,20 @@ const Action = ({ mode, entityId, entitySlug }) => {
 
 			setIsCreating(false);
 			setIsEditing(true);
+
+			toggleNotification({
+				type: 'success',
+				message: 'Action saved successfully!',
+			});
 		} catch (error) {
 			if (error instanceof ValidationError) {
 				toggleNotification({
-					type: 'warning',
-					message: {
-						id: getTrad('action.notification.publish.validation.error'),
-						defaultMessage: 'Required fields must be saved before a publish date can be set',
-					},
+					type: 'danger',
+					message: 'Required fields must be saved before a publish date can be set.',
 				});
+			} else {
+				console.error(error);
 			}
-			console.error(error);
 		} finally {
 			setIsLoading(false);
 		}
@@ -126,13 +129,18 @@ const Action = ({ mode, entityId, entitySlug }) => {
 			setExecuteAt(0);
 			setIsCreating(false);
 			setIsEditing(false);
+
+			toggleNotification({
+				type: 'success',
+				message: 'Action deleted successfully!',
+			});
 		} catch (error) {
 			console.error(error);
 		}
 	}
 
 	return (
-		<Stack spacing={2}>
+		<Flex>
 			<ActionTimePicker
 				onChange={handleDateChange}
 				executeAt={executeAt}
@@ -152,7 +160,7 @@ const Action = ({ mode, entityId, entitySlug }) => {
 				onSave={handleOnSave}
 				onDelete={handleOnDelete}
 			/>
-		</Stack>
+		</Flex>
 	);
 };
 

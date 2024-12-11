@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { useCMEditViewDataManager } from '@strapi/helper-plugin';
-import { getTrad } from '../../utils/getTrad';
-import { Box, Stack, Typography, Divider } from '@strapi/design-system';
+import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin/hooks';
+import { Box, Flex, Typography, Divider } from '@strapi/design-system';
 import Action from '../Action';
+import { getTrad } from '../../utils/getTrad';
 import { useSettings } from '../../hooks/useSettings';
 
 const actionModes = ['publish', 'unpublish'];
 
 const ActionManagerComponent = () => {
 	const { formatMessage } = useIntl();
-	const entity = useCMEditViewDataManager();
+	const {
+		slug,
+		isCreatingEntry,
+		hasDraftAndPublish,
+		form: { values: modifiedData },
+	} = useContentManagerContext();
+
 	const [showActions, setShowActions] = useState(false);
-	const { getSettings } = useSettings();
-	const { isLoading, data, isRefetching } = getSettings();
+	const { settings, isLoading } = useSettings();
 
 	useEffect(() => {
-		if (!isLoading && !isRefetching) {
-			if (!data.contentTypes?.length || data.contentTypes?.find((uid) => uid === entity.slug)) {
+		if (!isLoading && settings) {
+			if (
+				!settings.contentTypes?.length ||
+				settings.contentTypes?.includes(slug)
+			) {
 				setShowActions(true);
 			}
 		}
-	}, [isLoading, isRefetching]);
+	}, [isLoading, settings, slug]);
 
 	if (!showActions) {
 		return null;
@@ -38,28 +46,28 @@ const ActionManagerComponent = () => {
 			<Box marginTop={2} marginBottom={4}>
 				<Divider />
 			</Box>
-			<Stack spacing={4} marginTop={2}>
+			<Flex spacing={4} marginTop={2}>
 				{actionModes.map((mode, index) => (
 					<Action
 						mode={mode}
-						key={mode + index}
-						entityId={entity.modifiedData.id}
-						entitySlug={entity.slug}
+						key={`${mode}-${index}`}
+						entityId={modifiedData.id}
+						entitySlug={slug}
 					/>
 				))}
-			</Stack>
+			</Flex>
 		</Box>
 	);
 };
 
 const ActionManager = () => {
-	const entity = useCMEditViewDataManager();
+	const {
+		isCreatingEntry,
+		hasDraftAndPublish,
+		form: { values: modifiedData },
+	} = useContentManagerContext();
 
-	if (!entity.hasDraftAndPublish || entity.isCreatingEntry) {
-		return null;
-	}
-
-	if (!entity.modifiedData?.id) {
+	if (!hasDraftAndPublish || isCreatingEntry || !modifiedData?.id) {
 		return null;
 	}
 

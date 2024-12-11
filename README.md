@@ -28,6 +28,9 @@ npm install strapi-plugin-publisher
 yarn add strapi-plugin-publisher
 ```
 
+# Run with yalc link
+```yarn watch:link```
+
 ## Configuration
 
 ### Enable the plugin

@@ -2,7 +2,7 @@ import React from 'react';
 import { useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
 import { Button } from '@strapi/design-system';
-import { Check, Cross, Write, Pencil, Trash } from '@strapi/icons';
+import { Check, Cross, PaperPlane, Pencil, Trash } from '@strapi/icons';
 import { getTrad } from '../../../utils/getTrad';
 
 const ActionButtons = ({
@@ -54,7 +54,7 @@ const ActionButtons = ({
 				disabled={isLoading || !executeAt}
 				fullWidth
 				variant="success-light"
-				startIcon={<Write />}
+				startIcon={<PaperPlane />}
 				onClick={handleSaveChange}
 			>
 				{formatMessage({

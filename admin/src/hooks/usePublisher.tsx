@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useFetchClient, useNotification } from '@strapi/helper-plugin';
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
@@ -9,7 +9,7 @@ const buildQueryKey = (args) => {
 };
 
 export const usePublisher = () => {
-	const toggleNotification = useNotification();
+	const { toggleNotification } = useNotification();
 	const { del, post, put, get } = useFetchClient();
 	const queryClient = useQueryClient();
 
@@ -23,7 +23,7 @@ export const usePublisher = () => {
 
 	function onErrorHandler(error) {
 		toggleNotification({
-			type: 'warning',
+			type: 'danger',
 			message: error.response?.error?.message || error.message || { id: 'notification.error' },
 		});
 	}

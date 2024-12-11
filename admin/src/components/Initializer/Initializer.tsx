@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { pluginId } from '../../pluginId';
 
+//@ts-ignore
 const Initializer = ({ setPlugin }) => {
 	const ref = useRef();
 	ref.current = setPlugin;
