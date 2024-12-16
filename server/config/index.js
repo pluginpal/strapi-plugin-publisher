@@ -4,6 +4,7 @@ const { pluginConfigSchema } = require('./schema');
 
 module.exports = {
 	default: () => ({
+		enabled: true,
 		actions: {
 			syncFrequency: '*/1 * * * *',
 		},

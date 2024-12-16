@@ -4,7 +4,9 @@ import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
 
+// @ts-ignore
 const buildQueryKey = (args) => {
+	// @ts-ignore
 	return args.filter((a) => a);
 };
 
@@ -13,14 +15,16 @@ export const usePublisher = () => {
 	const { del, post, put, get } = useFetchClient();
 	const queryClient = useQueryClient();
 
+	// @ts-ignore
 	function onSuccessHandler({ queryKey, notification }) {
 		queryClient.invalidateQueries(queryKey);
 		toggleNotification({
 			type: notification.type,
+			// @ts-ignore
 			message: { id: getTrad(notification.tradId) },
 		});
 	}
-
+	// @ts-ignore
 	function onErrorHandler(error) {
 		toggleNotification({
 			type: 'danger',
@@ -33,8 +37,11 @@ export const usePublisher = () => {
 			queryKey: buildQueryKey([
 				pluginId,
 				'entity-action',
+				// @ts-ignore
 				filters.entityId,
+				// @ts-ignore
 				filters.sentitySlug,
+				// @ts-ignore
 				filters.mode,
 			]),
 			queryFn: function () {
@@ -74,6 +81,7 @@ export const usePublisher = () => {
 	});
 
 	const { mutateAsync: updateAction } = useMutation({
+		// @ts-ignore
 		mutationFn: function ({ id, body }) {
 			return put(`/${pluginId}/actions/${id}`, { data: body });
 		},
@@ -99,6 +107,7 @@ export const usePublisher = () => {
 	});
 
 	const { mutateAsync: deleteAction } = useMutation({
+		// @ts-ignore
 		mutationFn: function ({ id }) {
 			return del(`/${pluginId}/actions/${id}`);
 		},

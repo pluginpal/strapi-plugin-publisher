@@ -16,6 +16,7 @@ export const useSettings = () => {
 			const response = await get(`/${pluginId}/settings`);
 			setSettings(response.data?.data || null);
 		} catch (err) {
+			// @ts-ignore
 			setError(err);
 		} finally {
 			setIsLoading(false);

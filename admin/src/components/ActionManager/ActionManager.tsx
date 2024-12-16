@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin/hooks';
+import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
 import { Box, Flex, Typography, Divider } from '@strapi/design-system';
 import Action from '../Action';
 import { getTrad } from '../../utils/getTrad';
@@ -21,9 +21,9 @@ const ActionManagerComponent = () => {
 	const { settings, isLoading } = useSettings();
 
 	useEffect(() => {
-		if (!isLoading && settings) {
+		if (! isLoading && settings) {
 			if (
-				!settings.contentTypes?.length ||
+				! settings.contentTypes?.length ||
 				settings.contentTypes?.includes(slug)
 			) {
 				setShowActions(true);
@@ -31,7 +31,7 @@ const ActionManagerComponent = () => {
 		}
 	}, [isLoading, settings, slug]);
 
-	if (!showActions) {
+	if (! showActions) {
 		return null;
 	}
 
@@ -67,7 +67,7 @@ const ActionManager = () => {
 		form: { values: modifiedData },
 	} = useContentManagerContext();
 
-	if (!hasDraftAndPublish || isCreatingEntry || !modifiedData?.id) {
+	if (! hasDraftAndPublish || isCreatingEntry || ! modifiedData?.id) {
 		return null;
 	}
 

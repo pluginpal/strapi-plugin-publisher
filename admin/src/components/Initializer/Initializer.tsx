@@ -14,6 +14,7 @@ const Initializer = ({ setPlugin }) => {
 	ref.current = setPlugin;
 
 	useEffect(() => {
+		//@ts-ignore
 		ref.current(pluginId);
 	}, []);
 

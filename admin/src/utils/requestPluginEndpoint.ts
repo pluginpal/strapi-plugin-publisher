@@ -1,10 +1,12 @@
 import { useFetchClient } from '@strapi/strapi/admin';
 import { getPluginEndpointURL } from './getPluginEndpointURL';
 
+// @ts-ignore
 export const requestPluginEndpoint = async (endpoint: any, options = {}) => {
 	const { get, post, put, del } = useFetchClient();
 	const url = getPluginEndpointURL(endpoint);
 
+// @ts-ignore
 	switch (options.method?.toUpperCase()) {
 		case 'POST':
 			return post(url, options);
