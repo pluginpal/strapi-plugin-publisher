@@ -1,7 +1,7 @@
 'use strict';
 
-const { registerCronTasks } = require('./config/cron-tasks');
+import registerCronTasks from './config/cron-tasks';
 
-module.exports = ({ strapi }) => {
+export default ({ strapi }) => {
 	registerCronTasks({ strapi });
-};
+}

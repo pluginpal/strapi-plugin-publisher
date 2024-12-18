@@ -1,6 +1,6 @@
 'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 // https://github.com/strapi/strapi/blob/main/packages/core/utils/lib/content-types.js
 // https://github.com/strapi/strapi/blob/main/packages/core/utils/lib/relaions.js
@@ -10,7 +10,7 @@ const ID_ATTRIBUTE = 'id';
 const CREATED_AT_ATTRIBUTE = 'createdAt';
 const UPDATED_AT_ATTRIBUTE = 'updatedAt';
 
-function isAnyToMany(attribute) {
+export function isAnyToMany(attribute) {
 	return (
 		isRelationalAttribute(attribute) && ['oneToMany', 'manyToMany'].includes(attribute.relation)
 	);
@@ -20,7 +20,7 @@ function isRelationalAttribute(attribute) {
 	return attribute && attribute.type === 'relation';
 }
 
-function isVisibleAttribute(model, attributeName) {
+export function isVisibleAttribute(model, attributeName) {
 	return getVisibleAttributes(model).includes(attributeName);
 }
 
@@ -52,7 +52,7 @@ function getTimestamps(model) {
 	return attributes;
 }
 
-module.exports = {
+export default {
 	isAnyToMany,
 	isVisibleAttribute,
-};
+}

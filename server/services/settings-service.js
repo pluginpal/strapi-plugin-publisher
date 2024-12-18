@@ -1,9 +1,7 @@
-'use strict';
+import pluginId from '../utils/pluginId';
 
-const { pluginId } = require('../utils/pluginId');
-
-module.exports = ({ strapi }) => ({
+export default ({ strapi }) => ({
 	get() {
 		return strapi.config.get(`plugin.${pluginId}`);
-	},
+	}
 });

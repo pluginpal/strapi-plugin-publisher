@@ -1,13 +1,13 @@
 'use strict';
 
-const actionService = require('./action-service');
-const emitService = require('./emit-service');
-const publicationService = require('./publication-service');
-const settingsService = require('./settings-service');
+import actionService from './action-service';
+import emitService from './emit-service';
+import publicationService from './publication-service';
+import settingsService from './settings-service';
 
-module.exports = {
+export default {
 	action: actionService,
 	emitService,
 	publicationService,
 	settingsService,
-};
+}

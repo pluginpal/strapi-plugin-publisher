@@ -1,11 +1,11 @@
 'use strict';
 
-const strapiUtils = require('@strapi/utils');
+import strapiUtils from '@strapi/utils';
 
 const ENTRY_PUBLISH = 'entry.publish';
 const ENTRY_UNPUBLISH = 'entry.unpublish';
 
-module.exports = ({ strapi }) => ({
+export default ({ strapi }) => ({
 	async emit(event, uid, entity) {
 		const model = strapi.getModel(uid);
 		const sanitizedEntity = await strapiUtils.sanitize.sanitizers.defaultSanitizeOutput(

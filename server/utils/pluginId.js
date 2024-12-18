@@ -1,4 +1,4 @@
-const pluginPkg = require('../../package.json');
+import pluginPkg from '../../package.json';
 
 /**
  * Returns the plugin id
@@ -7,4 +7,4 @@ const pluginPkg = require('../../package.json');
  */
 const pluginId = pluginPkg.strapi.name;
 
-module.exports = { pluginId };
+export default pluginId;

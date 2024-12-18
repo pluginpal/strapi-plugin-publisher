@@ -1,12 +1,12 @@
 'use strict';
 
-const { getPluginService } = require('../utils/getPluginService');
-const { getPluginEntityUid } = require('../utils/getEntityUId');
-const { getDeepPopulate } = require('../utils/populate');
+import getPluginService from '../utils/getPluginService';
+import getPluginEntityUid from '../utils/getEntityUId';
+import getDeepPopulate from '../utils/populate';
 
 const actionUId = getPluginEntityUid('action');
 
-module.exports = ({ strapi }) => ({
+export default ({ strapi }) => ({
 	/**
 	 * Publish a single record
 	 *

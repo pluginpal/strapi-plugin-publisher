@@ -1,6 +1,9 @@
 'use strict';
 
-module.exports = {
-	admin: require('./admin'),
-	'content-api': require('./content-api'),
+import admin from './admin';
+import contentApi from './content-api';
+
+export default {
+	admin,
+	'content-api': contentApi,
 };

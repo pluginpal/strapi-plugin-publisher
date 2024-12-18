@@ -1,4 +1,4 @@
-const { pluginId } = require('./pluginId');
+import pluginId from './pluginId';
 
 /**
  * A helper function to obtain a plugin service
@@ -7,6 +7,4 @@ const { pluginId } = require('./pluginId');
  */
 const getPluginService = (name) => strapi.plugin(pluginId).service(name);
 
-module.exports = {
-	getPluginService,
-};
+export default getPluginService;

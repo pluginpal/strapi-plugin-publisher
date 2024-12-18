@@ -1,9 +1,8 @@
 'use strict';
 
 // from https://github.com/strapi/strapi/blob/main/packages/core/content-manager/server/services/utils/populate.js
-
-const _ = require('lodash');
-const { isAnyToMany, isVisibleAttribute } = require('./relations');
+import _ from 'lodash';
+import { isAnyToMany, isVisibleAttribute } from './relations';
 
 /**
  * Populate the model for relation
@@ -119,6 +118,4 @@ const getDeepPopulate = (
 	);
 };
 
-module.exports = {
-	getDeepPopulate,
-};
+export default getDeepPopulate;
