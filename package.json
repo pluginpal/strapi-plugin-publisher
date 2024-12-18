@@ -49,8 +49,7 @@
 		"lodash": "^4.17.21",
 		"prop-types": "^15.8.1",
 		"react-query": "^3.39.3",
-		"yup": "^0.32.9",
-        "strapi-plugin-publisher": "file:.yalc/strapi-plugin-publisher"
+		"yup": "^0.32.9"
     },
 	"devDependencies": {
 		"@babel/core": "^7.23.3",
