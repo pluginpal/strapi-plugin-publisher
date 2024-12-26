@@ -1,7 +1,7 @@
 'use strict';
 
-const actionContentType = require('./action-content-type');
+import actionContentType from './action-content-type';
 
-module.exports = {
+export default {
 	action: { schema: actionContentType },
-};
+}

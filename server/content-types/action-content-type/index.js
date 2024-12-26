@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = {
+export default {
 	kind: 'collectionType',
 	collectionName: 'actions',
 	info: {
@@ -34,4 +34,4 @@ module.exports = {
 			type: 'string',
 		},
 	},
-};
+}

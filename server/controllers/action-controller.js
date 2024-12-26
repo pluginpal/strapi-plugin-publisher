@@ -1,9 +1,8 @@
 'use strict';
 
+import { factories } from '@strapi/strapi';
+
 /**
  *  controller
  */
-
-const { createCoreController } = require('@strapi/strapi').factories;
-
-module.exports = createCoreController('plugin::publisher.action');
+export default factories.createCoreController('plugin::publisher.action');

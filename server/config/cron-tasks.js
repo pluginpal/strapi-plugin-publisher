@@ -1,8 +1,8 @@
 'use strict';
 
-const { getPluginService } = require('../utils/getPluginService');
+import getPluginService from '../utils/getPluginService';
 
-module.exports = {
+export default () => ({
 	registerCronTasks: ({ strapi }) => {
 		const settings = getPluginService('settingsService').get();
 
@@ -29,5 +29,5 @@ module.exports = {
 				},
 			},
 		});
-	},
-};
+	}
+});
