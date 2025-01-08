@@ -1,5 +1,3 @@
-'use strict';
-
 export default {
 	kind: 'collectionType',
 	collectionName: 'actions',

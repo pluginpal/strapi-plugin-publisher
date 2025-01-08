@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 // @ts-ignore
 const buildQueryKey = (args) => {

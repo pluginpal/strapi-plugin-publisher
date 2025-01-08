@@ -1,5 +1,3 @@
-'use strict';
-
 import actionRoutes from './action-routes';
 import settingsRoutes from './settings-routes';
 

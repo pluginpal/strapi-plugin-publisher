@@ -17,12 +17,13 @@ export default {
 	},
 
 	bootstrap(app: any) {
-		app.injectContentManagerComponent('editView', 'informations', {
-			name: name,
-			Component: ActionManager,
-		});
+		app.getPlugin('content-manager').injectComponent(
+			'editView',
+			'right-links',
+			{ name: 'action-manager', Component: ActionManager }
+		);
 	},
-
+	
 	async registerTrads(app: any) {
 		const { locales } = app;
 		const importedTrads = [];

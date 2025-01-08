@@ -1,5 +1,3 @@
-'use strict';
-
 import admin from './admin';
 import contentApi from './content-api';
 

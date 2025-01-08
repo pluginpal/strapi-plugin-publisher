@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useFetchClient } from '@strapi/strapi/admin';
 import { pluginId } from '../pluginId';
+import { useFetchClient } from '@strapi/strapi/admin';
 
 export const useSettings = () => {
 	const { get } = useFetchClient();

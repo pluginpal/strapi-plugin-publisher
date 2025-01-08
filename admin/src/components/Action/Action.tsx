@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin/hooks';
+import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
 import { useRBAC, useNotification } from '@strapi/strapi/admin';
 import PropTypes from 'prop-types';
 import { usePublisher } from '../../hooks/usePublisher';

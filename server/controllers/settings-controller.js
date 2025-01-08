@@ -1,6 +1,6 @@
 'use strict';
 
-import { getPluginService } from '../utils/getPluginService';
+import getPluginService from '../utils/getPluginService';
 
 export default {
 	/**

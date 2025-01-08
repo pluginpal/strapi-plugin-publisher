@@ -1,6 +1,7 @@
 /**
  *  service
  */
-import createCoreService from '@strapi/strapi';
 
-export default createCoreService('plugin::publisher.action');
+import { factories } from '@strapi/strapi';
+
+export default factories.createCoreService('plugin::publisher.action');
