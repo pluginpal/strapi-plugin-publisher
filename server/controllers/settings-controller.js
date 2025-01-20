@@ -1,5 +1,3 @@
-'use strict';
-
 import getPluginService from '../utils/getPluginService';
 
 export default {

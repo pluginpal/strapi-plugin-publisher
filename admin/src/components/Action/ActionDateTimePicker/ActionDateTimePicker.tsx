@@ -12,7 +12,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 	const { formatMessage, locale: browserLocale } = useIntl();
 	const [locale, setLocale] = useState(browserLocale);
 	const [step, setStep] = useState(1);
-	const { settings, isLoading, error, refetch } = useSettings();
+	const { getSettings } = useSettings();
 
 	function handleDateChange(date) {
 		if (onChange) {
@@ -20,21 +20,25 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 		}
 	}
 
-	useEffect(() => {
-		if (!isLoading && settings) {
-			setStep(settings.components.dateTimePicker.step);
+	const { isLoading, data, isRefetching } = getSettings();
 
-			const customLocale = settings.components.dateTimePicker.locale;
-			try {
-				Intl.DateTimeFormat(customLocale);
-				setLocale(customLocale);
-			} catch (error) {
-				console.log(
-					`'${customLocale}' is not a valid format, using browser locale: '${browserLocale}'`
-				);
+	useEffect(() => {
+		if (!isLoading && !isRefetching) {
+			if (data) {
+				setStep(data.components.dateTimePicker.step);
+
+				const customLocale = data.components.dateTimePicker.locale;
+				try {
+					Intl.DateTimeFormat(customLocale);
+					setLocale(customLocale);
+				} catch (error) {
+					console.log(
+						`'${customLocale}' is not a valid format, using browser locale: '${browserLocale}'`
+					);
+				}
 			}
 		}
-	}, [isLoading, settings]);
+	}, [isLoading, isRefetching]);
 
 	if (!isCreating && !isEditing) {
 		return null;
@@ -42,13 +46,14 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 
 	return (
 		<div id="action-date-time-picker">
+			<Typography variant="sigma" textColor="neutral600" marginBottom={1}>
+				{formatMessage({
+					id: getTrad(`action.header.${mode}.title`),
+					defaultMessage: `${mode} Date`,
+				})}
+			</Typography>
+
 			<Flex>
-				<Typography variant="sigma" textColor="neutral600" marginBottom={1}>
-					{formatMessage({
-						id: getTrad(`action.header.${mode}.title`),
-						defaultMessage: `${mode} Date`,
-					})}
-				</Typography>
 				<DateTimePicker
 					aria-label="datetime picker"
 					onChange={handleDateChange}

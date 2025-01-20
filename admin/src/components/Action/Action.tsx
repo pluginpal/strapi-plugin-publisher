@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
-import { useRBAC, useNotification } from '@strapi/strapi/admin';
+import { useNotification, useRBAC } from '@strapi/strapi/admin';
 import PropTypes from 'prop-types';
-import { usePublisher } from '../../hooks/usePublisher';
-import { Flex } from '@strapi/design-system';
+import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
 import ActionTimePicker from './ActionDateTimePicker';
 import ActionButtons from './ActionButtons/ActionButtons';
 import { ValidationError } from 'yup';
+import { usePublisher } from '../../hooks/usePublisher';
+import { getTrad } from '../../utils/getTrad';
 import { createYupSchema } from '../../utils/schema';
+import { Flex } from '@strapi/design-system';
 
 const Action = ({ mode, entityId, entitySlug }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
-	const { form: { initialValues, values: modifiedData } } = useContentManagerContext();
+	const entity = useContentManagerContext();
 	const { toggleNotification } = useNotification();
 	const [actionId, setActionId] = useState(0);
 	const [isEditing, setIsEditing] = useState(false);
@@ -21,12 +22,14 @@ const Action = ({ mode, entityId, entitySlug }) => {
 	const [canPublish, setCanPublish] = useState(true);
 
 	let schema;
+	console.log(entity, 'in Action.tsx');
+
 	if (mode === 'publish') {
-		const currentContentTypeLayout = modifiedData.layout || {};
+		const currentContentTypeLayout = entity.contentType || {};
 		schema = createYupSchema(
 			currentContentTypeLayout,
-			{ components: modifiedData.components || {} },
-			{ isCreatingEntry: modifiedData.isCreatingEntry, isDraft: false, isFromComponent: false },
+			{ components: entity.components || {} },
+			{ isCreatingEntry: entity.isCreatingEntry, isDraft: false, isFromComponent: false }
 		);
 	}
 
@@ -36,6 +39,7 @@ const Action = ({ mode, entityId, entitySlug }) => {
 
 	useEffect(() => {
 		if (!isLoadingPermissions) {
+			console.log(allowedActions, 'allowedActions');
 			setCanPublish(allowedActions.canPublish);
 		}
 	}, [isLoadingPermissions]);
@@ -50,40 +54,39 @@ const Action = ({ mode, entityId, entitySlug }) => {
 		entitySlug,
 	});
 
-	// set initial data to state so it's reactive
 	useEffect(() => {
 		setIsLoading(true);
 		if (!isLoadingAction && !isRefetchingAction) {
 			setIsLoading(false);
 			if (data) {
 				setActionId(data.id);
-				setExecuteAt(data.attributes.executeAt);
+				setExecuteAt(data.publishedAt);
 				setIsEditing(true);
 			} else {
 				setActionId(0);
 			}
 		}
-	}, [isLoadingAction, isRefetchingAction]);
+	}, [isLoadingAction, isRefetchingAction, data]);
 
-	// handlers
-	function handleDateChange(date) {
-		setExecuteAt(date);
-	}
+	const handleDateChange = (date) => {
+		console.log(date, 'date');
+		setExecuteAt(date.toISOString());
+	};
 
-	function handleOnEdit() {
+	const handleOnEdit = () => {
 		setIsCreating(true);
 		setIsEditing(false);
-	}
+	};
 
-	function handleOnCreate() {
+	const handleOnCreate = () => {
 		setIsCreating(true);
-	}
+	};
 
-	async function handleOnSave() {
+	const handleOnSave = async () => {
 		setIsLoading(true);
 		try {
 			if (mode === 'publish' && schema) {
-				await schema.validate(modifiedData, { abortEarly: false });
+				await schema.validate(entity.initialData, { abortEarly: false });
 			}
 
 			if (!actionId) {
@@ -103,44 +106,35 @@ const Action = ({ mode, entityId, entitySlug }) => {
 
 			setIsCreating(false);
 			setIsEditing(true);
-
-			toggleNotification({
-				type: 'success',
-				message: 'Action saved successfully!',
-			});
 		} catch (error) {
 			if (error instanceof ValidationError) {
 				toggleNotification({
 					type: 'danger',
-					message: 'Required fields must be saved before a publish date can be set.',
+					message: getTrad('action.notification.publish.validation.error'),
 				});
-			} else {
-				console.error(error);
 			}
+			console.error(error);
 		} finally {
 			setIsLoading(false);
 		}
-	}
+	};
 
-	async function handleOnDelete() {
+	const handleOnDelete = async () => {
 		try {
+			console.log(actionId, 'actionId');
+
 			await deleteAction({ id: actionId });
 			setActionId(0);
 			setExecuteAt(0);
 			setIsCreating(false);
 			setIsEditing(false);
-
-			toggleNotification({
-				type: 'success',
-				message: 'Action deleted successfully!',
-			});
 		} catch (error) {
 			console.error(error);
 		}
-	}
+	};
 
 	return (
-		<Flex>
+		<Flex marginTop={2} gap={{initial: 2}} direction={{initial: 'column'}}>
 			<ActionTimePicker
 				onChange={handleDateChange}
 				executeAt={executeAt}

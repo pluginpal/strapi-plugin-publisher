@@ -2,4 +2,12 @@
 	#action-date-time-picker fieldset legend + div {
 		flex-wrap: wrap;
 	}
+
+    #action-date-time-picker .kxtJhu {
+        min-width: 120px !important;
+    }
+}
+
+.kxtJhu {
+    min-width: 120px !important;
 }

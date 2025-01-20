@@ -1,7 +1,7 @@
 import React from 'react';
 import { useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
-import { Button } from '@strapi/design-system';
+import { Button, Flex } from '@strapi/design-system';
 import { Check, Cross, PaperPlane, Pencil, Trash } from '@strapi/icons';
 import { getTrad } from '../../../utils/getTrad';
 
@@ -67,7 +67,7 @@ const ActionButtons = ({
 
 	if (isEditing) {
 		return (
-			<>
+			<Flex marginTop={2} gap={{initial: 2}} direction={{initial: 'row'}}>
 				<Button fullWidth onClick={handleEditChange} variant="tertiary" startIcon={<Pencil />}>
 					{formatMessage({
 						id: getTrad(`action.footer.${mode}.button.edit`),
@@ -80,7 +80,7 @@ const ActionButtons = ({
 						defaultMessage: `Delete`,
 					})}
 				</Button>
-			</>
+			</Flex>
 		);
 	}
 

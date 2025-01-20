@@ -10,28 +10,23 @@ const actionModes = ['publish', 'unpublish'];
 
 const ActionManagerComponent = () => {
 	const { formatMessage } = useIntl();
-	const {
-		slug,
-		isCreatingEntry,
-		hasDraftAndPublish,
-		form: { values: modifiedData },
-	} = useContentManagerContext();
-
+	const entity = useContentManagerContext();
 	const [showActions, setShowActions] = useState(false);
-	const { settings, isLoading } = useSettings();
+	const { getSettings } = useSettings();
+	const { isLoading, data, isRefetching } = getSettings();
+
+	console.log(data, 'data');
+	console.log(entity, 'entity');
 
 	useEffect(() => {
-		if (! isLoading && settings) {
-			if (
-				! settings.contentTypes?.length ||
-				settings.contentTypes?.includes(slug)
-			) {
+		if (!isLoading && !isRefetching) {
+			if (!data.contentTypes?.length || data.contentTypes?.find((uid) => uid === entity.slug)) {
 				setShowActions(true);
 			}
 		}
-	}, [isLoading, settings, slug]);
+	}, [isLoading, isRefetching]);
 
-	if (! showActions) {
+	if (!showActions) {
 		return null;
 	}
 
@@ -46,13 +41,13 @@ const ActionManagerComponent = () => {
 			<Box marginTop={2} marginBottom={4}>
 				<Divider />
 			</Box>
-			<Flex spacing={4} marginTop={2}>
+			<Flex marginTop={2} gap={{initial: 2}} direction={{initial: 'column'}}>
 				{actionModes.map((mode, index) => (
 					<Action
 						mode={mode}
-						key={`${mode}-${index}`}
-						entityId={modifiedData.id}
-						entitySlug={slug}
+						key={mode + index}
+						entityId={entity.id}
+						entitySlug={entity.slug}
 					/>
 				))}
 			</Flex>
@@ -61,15 +56,16 @@ const ActionManagerComponent = () => {
 };
 
 const ActionManager = () => {
-	const {
-		isCreatingEntry,
-		hasDraftAndPublish,
-		form: { values: modifiedData },
-	} = useContentManagerContext();
+	const entity = useContentManagerContext();
+	console.log(entity, 'entity');
 
-	if (! hasDraftAndPublish || isCreatingEntry || ! modifiedData?.id) {
+	if (!entity.hasDraftAndPublish || entity.isCreatingEntry) {
 		return null;
 	}
+
+	//if (!entity?.id) {
+	//	return null;
+	//}
 
 	return <ActionManagerComponent />;
 };
