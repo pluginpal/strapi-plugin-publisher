@@ -16,6 +16,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 
 	function handleDateChange(date) {
 		if (onChange) {
+			console.log(date, 'date in ActionDateTimePicker');
 			onChange(date);
 		}
 	}
@@ -29,12 +30,14 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 
 				const customLocale = data.components.dateTimePicker.locale;
 				try {
-					Intl.DateTimeFormat(customLocale);
-					setLocale(customLocale);
+					// Validate the locale using Intl.DateTimeFormat
+					new Intl.DateTimeFormat(customLocale);
+					setLocale(customLocale); // Set the custom locale if valid
 				} catch (error) {
-					console.log(
-						`'${customLocale}' is not a valid format, using browser locale: '${browserLocale}'`
+					console.warn(
+						`'${customLocale}' is not a valid locale format. Falling back to browser locale: '${browserLocale}'`
 					);
+					setLocale(browserLocale);
 				}
 			}
 		}

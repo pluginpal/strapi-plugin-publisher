@@ -5,6 +5,7 @@ import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
 
 const buildQueryKey = (args) => args.filter((a) => a);
+console.log('buildQueryKey', buildQueryKey);
 
 export const usePublisher = () => {
 	const { toggleNotification } = useNotification();
@@ -41,19 +42,33 @@ export const usePublisher = () => {
 			queryKey: buildQueryKey([
 				pluginId,
 				'entity-action',
-				filters.entityId,
-				filters.sentitySlug,
+				filters.documentId,
+				filters.entitySlug,
 				filters.mode,
 			]),
-			queryFn: () => get(`/${pluginId}/actions`, { params: { filters } }),
-			select: ({ data }) => data[0] || false,
+			queryFn: function () {
+				return get(`/${pluginId}/actions`, {
+					params: { filters },
+				});
+			},
+			select: function ({ data }) {
+				return data.data[0] || false;
+			},
 		});
 	}
 
 	const { mutateAsync: createAction } = useMutation({
 		mutationFn: (body) => post(`/${pluginId}/actions`, { data: body }),
-		onSuccess: ({ data }) => {
-			const queryKey = buildQueryKey([pluginId, 'entity-action', data.entityId]);
+		onSuccess: ({ data: response }) => {
+			const { data } = response;
+			const queryKey = buildQueryKey([
+				pluginId,
+				'entity-action',
+				data.documentId,
+				data.entitySlug,
+				data.mode,
+			]);
+			console.log(buildQueryKey, 'buildQueryKey in create action');
 			onSuccessHandler({
 				queryKey,
 				notification: {
@@ -66,15 +81,24 @@ export const usePublisher = () => {
 	});
 
 	const { mutateAsync: updateAction } = useMutation({
-		mutationFn: ({ documentId, body }) =>
-			put(`/${pluginId}/actions/${documentId}`, { data: body }),
-		onSuccess: () => {
-			const queryKey = buildQueryKey([pluginId, 'entity-action']);
+		mutationFn: function ({ id, body }) {
+			return put(`/${pluginId}/actions/${id}`, { data: body });
+		},
+		onSuccess: ({ data: response }) => {
+			const { data } = response;
+			const queryKey = buildQueryKey([
+				pluginId,
+				'entity-action',
+				data.documentId,
+				data.entitySlug,
+				data.mode,
+			]);
+			console.log(buildQueryKey, 'buildQueryKey in update action');
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${pluginId}.update.success`,
+					tradId: `action.notification.${data.attributes.mode}.update.success`,
 				},
 			});
 		},
@@ -82,14 +106,24 @@ export const usePublisher = () => {
 	});
 
 	const { mutateAsync: deleteAction } = useMutation({
-		mutationFn: ({ documentId }) => del(`/${pluginId}/actions/${documentId}`),
-		onSuccess: () => {
-			const queryKey = buildQueryKey([pluginId, 'entity-action']);
+		mutationFn: function ({ id }) {
+			return del(`/${pluginId}/actions/${id}`);
+		},
+		onSuccess: ({ data: response }) => {
+			const { data } = response;
+			const queryKey = buildQueryKey([
+				pluginId,
+				'entity-action',
+				data.documentId,
+				data.entitySlug,
+				data.mode,
+			]);
+
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${pluginId}.delete.success`,
+					tradId: `action.notification.${data.attributes.mode}.delete.success`,
 				},
 			});
 		},
