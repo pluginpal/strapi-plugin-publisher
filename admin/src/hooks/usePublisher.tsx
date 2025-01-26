@@ -58,7 +58,9 @@ export const usePublisher = () => {
 	}
 
 	const { mutateAsync: createAction } = useMutation({
-		mutationFn: (body) => post(`/${pluginId}/actions`, { data: body }),
+		mutationFn: function (body) {
+			return post(`/${pluginId}/actions`, { data: body });
+		},
 		onSuccess: ({ data: response }) => {
 			const { data } = response;
 			const queryKey = buildQueryKey([
@@ -68,7 +70,6 @@ export const usePublisher = () => {
 				data.entitySlug,
 				data.mode,
 			]);
-			console.log(buildQueryKey, 'buildQueryKey in create action');
 			onSuccessHandler({
 				queryKey,
 				notification: {

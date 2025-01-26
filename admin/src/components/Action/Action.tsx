@@ -48,8 +48,8 @@ const Action = ({ mode, documentId, entitySlug }) => {
 	const {
 		isLoading: isLoadingAction,
 		data,
-		isRefetching: isRefetchingAction,
-	} = getAction({
+			isRefetching: isRefetchingAction,
+		} = getAction({
 		mode,
 		documentId,
 		entitySlug,
@@ -94,23 +94,14 @@ const Action = ({ mode, documentId, entitySlug }) => {
 				await schema.validate(entity.initialData, { abortEarly: false });
 			}
 
-			console.log({
-				mode,
-				id: documentId,
-				entitySlug,
-				executeAt,
-			}, 'Payload voor createAction');
-
-			// Create or update action
+			// Create of update actie
 			if (!actionId) {
 				const { data: response } = await createAction({
 					mode,
-					id: documentId,
 					entitySlug,
 					executeAt,
 				});
 				console.log(response, 'response van createAction');
-
 				if (response.data && response.data.id) {
 					setActionId(response.data.id);
 				}
