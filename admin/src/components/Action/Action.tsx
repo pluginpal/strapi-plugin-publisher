@@ -51,7 +51,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 			isRefetching: isRefetchingAction,
 		} = getAction({
 		mode,
-		documentId,
+		entityId: documentId,
 		entitySlug,
 	});
 
@@ -61,7 +61,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 		if (!isLoadingAction && !isRefetchingAction) {
 			setIsLoading(false);
 			if (data) {
-				setActionId(data.id);
+				setActionId(data.documentId);
 				setExecuteAt(data.executeAt || data.publishedAt);
 				setIsEditing(true);
 			} else {
@@ -71,11 +71,9 @@ const Action = ({ mode, documentId, entitySlug }) => {
 	}, [isLoadingAction, isRefetchingAction, data]);
 
 	// Handlers
-	const handleDateChange = (date) => {
-		const isoString = date.toISOString();
-		console.log(isoString, 'isoString in handleDateChange');
-		setExecuteAt(isoString);
-	};
+	function handleDateChange(date) {
+		setExecuteAt(date);
+	}
 
 	const handleOnEdit = () => {
 		setIsCreating(true);
@@ -97,6 +95,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 			// Create of update actie
 			if (!actionId) {
 				const { data: response } = await createAction({
+					entityId: documentId,
 					mode,
 					entitySlug,
 					executeAt,
@@ -116,11 +115,6 @@ const Action = ({ mode, documentId, entitySlug }) => {
 				toggleNotification({
 					type: 'danger',
 					message: getTrad('action.notification.publish.validation.error'),
-				});
-			} else {
-				toggleNotification({
-					type: 'danger',
-					message: 'An error occurred while saving the action.',
 				});
 			}
 			console.error(error);

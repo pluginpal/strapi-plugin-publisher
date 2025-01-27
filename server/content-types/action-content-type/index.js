@@ -26,7 +26,7 @@ export default {
 			type: 'string',
 		},
 		entityId: {
-			type: 'integer',
+			type: 'string',
 		},
 		entitySlug: {
 			type: 'string',

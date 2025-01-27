@@ -5,7 +5,6 @@ import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
 
 const buildQueryKey = (args) => args.filter((a) => a);
-console.log('buildQueryKey', buildQueryKey);
 
 export const usePublisher = () => {
 	const { toggleNotification } = useNotification();
@@ -83,6 +82,7 @@ export const usePublisher = () => {
 
 	const { mutateAsync: updateAction } = useMutation({
 		mutationFn: function ({ id, body }) {
+			console.log('body', body, 'id', id);
 			return put(`/${pluginId}/actions/${id}`, { data: body });
 		},
 		onSuccess: ({ data: response }) => {
@@ -94,12 +94,13 @@ export const usePublisher = () => {
 				data.entitySlug,
 				data.mode,
 			]);
-			console.log(buildQueryKey, 'buildQueryKey in update action');
+			console.log('data', data);
+			console.log('response', response);
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${data.attributes.mode}.update.success`,
+					tradId: `action.notification.${pluginId}.update.success`,
 				},
 			});
 		},
@@ -110,21 +111,16 @@ export const usePublisher = () => {
 		mutationFn: function ({ id }) {
 			return del(`/${pluginId}/actions/${id}`);
 		},
-		onSuccess: ({ data: response }) => {
-			const { data } = response;
+		onSuccess: () => {
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
-				data.documentId,
-				data.entitySlug,
-				data.mode,
 			]);
-
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${data.attributes.mode}.delete.success`,
+					tradId: `action.notification.delete.success`,
 				},
 			});
 		},
