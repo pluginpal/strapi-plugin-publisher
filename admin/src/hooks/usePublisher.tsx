@@ -94,7 +94,6 @@ export const usePublisher = () => {
 				data.entitySlug,
 				data.mode,
 			]);
-			console.log('data', data);
 			console.log('response', response);
 			onSuccessHandler({
 				queryKey,

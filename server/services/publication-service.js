@@ -8,10 +8,10 @@ export default ({ strapi }) => ({
 	 * Publish a single record
 	 *
 	 */
-	async publish(uid, entityId, data = {}) {
+	async publish(uid, entityId = {}) {
 		const populateRelations = strapi.config.get('server.webhooks.populateRelations', true);
-		const publishedEntity = await strapi.entityService.update(uid, entityId, {
-			data,
+		const publishedEntity = await strapi.documents(uid).publish({
+			documentId: entityId,
 			populate: populateRelations
 				? getDeepPopulate(uid, {})
 				: getDeepPopulate(uid, { countMany: true, countOne: true }),
@@ -28,16 +28,15 @@ export default ({ strapi }) => ({
 	 */
 	async unpublish(uid, entityId) {
 		const populateRelations = strapi.config.get('server.webhooks.populateRelations', true);
-		const unpublishedEntity = await strapi.entityService.update(uid, entityId, {
-			data: {
-				publishedAt: null,
-			},
+		const unpublishedEntity = await strapi.documents(uid).unpublish({
+			documentId: entityId,
 			populate: populateRelations
 				? getDeepPopulate(uid, {})
 				: getDeepPopulate(uid, { countMany: true, countOne: true }),
 		});
+
 		const { hooks } = getPluginService('settingsService').get();
-		// emit unpublish event
+		// Events emitten
 		await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
 		await getPluginService('emitService').unpublish(uid, unpublishedEntity);
 		await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
@@ -50,22 +49,29 @@ export default ({ strapi }) => ({
 		// handle single content type, id is always 1
 		const entityId = record.entityId || 1;
 
-		const entity = await strapi.entityService.findOne(record.entitySlug, entityId);
+		// const entity = await strapi.entityService.findOne(record.entitySlug, entityId);
+			const entity = await strapi.documents(record.entitySlug).findOne({
+				documentId: record.entityId,
+			});
+
 		// ensure entity exists before attempting mutations.
 		if (!entity) {
 			return;
 		}
 
-		// ensure entity is in correct publication status
-		if (!entity.publishedAt && mode === 'publish') {
+		// Check with boaz if this is a good way to check if the entity is already published
+		if (mode === 'publish') {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});
-		} else if (entity.publishedAt && mode === 'unpublish') {
+		} else if (mode === 'unpublish') {
 			await this.unpublish(record.entitySlug, entityId);
 		}
 
 		// remove any used actions
-		strapi.entityService.delete(actionUId, record.id);
+		// strapi.document.delete(actionUId, record.id);
+			await strapi.documents(actionUId).delete({
+				documentId: record.id,
+			});
 	},
 });

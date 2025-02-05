@@ -72,7 +72,9 @@ const Action = ({ mode, documentId, entitySlug }) => {
 
 	// Handlers
 	function handleDateChange(date) {
-		setExecuteAt(date.toISOString());
+		console.log(date, 'date in ActionDateTimePicker');
+		//setExecuteAt(date.toISOString());
+		setExecuteAt(date);
 	}
 
 	const handleOnEdit = () => {
@@ -92,6 +94,8 @@ const Action = ({ mode, documentId, entitySlug }) => {
 				await schema.validate(entity.initialData, { abortEarly: false });
 			}
 
+			console.log(executeAt, 'executeAt in handleOnSave');
+
 			// Create of update actie
 			if (!actionId) {
 				const { data: response } = await createAction({
@@ -105,6 +109,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 					setActionId(response.data.id);
 				}
 			} else {
+				console.log(executeAt, 'executeAt in handleOnSave');
 				await updateAction({ id: actionId, body: { executeAt } });
 			}
 
