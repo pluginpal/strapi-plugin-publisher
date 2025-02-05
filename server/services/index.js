@@ -1,5 +1,3 @@
-'use strict';
-
 import actionService from './action-service';
 import emitService from './emit-service';
 import publicationService from './publication-service';

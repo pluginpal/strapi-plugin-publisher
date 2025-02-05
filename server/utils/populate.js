@@ -1,5 +1,3 @@
-'use strict';
-
 // from https://github.com/strapi/strapi/blob/main/packages/core/content-manager/server/services/utils/populate.js
 import _ from 'lodash';
 import { isAnyToMany, isVisibleAttribute } from './relations';

@@ -1,9 +1,4 @@
-'use strict';
-
 import _ from 'lodash';
-
-// https://github.com/strapi/strapi/blob/main/packages/core/utils/lib/content-types.js
-// https://github.com/strapi/strapi/blob/main/packages/core/utils/lib/relaions.js
 
 // constants
 const ID_ATTRIBUTE = 'id';
@@ -50,9 +45,4 @@ function getTimestamps(model) {
 	}
 
 	return attributes;
-}
-
-export default {
-	isAnyToMany,
-	isVisibleAttribute,
 }

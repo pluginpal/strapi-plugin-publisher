@@ -24,7 +24,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 	const { isLoading, data, isRefetching } = getSettings();
 
 	useEffect(() => {
-		if (!isLoading && !isRefetching) {
+		if (! isLoading && ! isRefetching) {
 			if (data) {
 				setStep(data.components.dateTimePicker.step);
 
@@ -35,7 +35,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 					setLocale(customLocale); // Set the custom locale if valid
 				} catch (error) {
 					console.warn(
-						`'${customLocale}' is not a valid locale format. Falling back to browser locale: '${browserLocale}'`
+						`'${customLocale}' is not a valid locale format. Falling back to browser locale: '${browserLocale}'`,
 					);
 					setLocale(browserLocale);
 				}
@@ -43,7 +43,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 		}
 	}, [isLoading, isRefetching]);
 
-	if (!isCreating && !isEditing) {
+	if (! isCreating && ! isEditing) {
 		return null;
 	}
 
@@ -56,16 +56,14 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 				})}
 			</Typography>
 
-			<Flex>
-				<DateTimePicker
-					aria-label="datetime picker"
-					onChange={handleDateChange}
-					value={executeAt ? new Date(executeAt) : null}
-					disabled={!isCreating}
-					step={step}
-					locale={locale}
-				/>
-			</Flex>
+			<DateTimePicker
+				aria-label="datetime picker"
+				onChange={handleDateChange}
+				value={executeAt ? new Date(executeAt) : null}
+				disabled={! isCreating}
+				step={step}
+				locale={locale}
+			/>
 		</div>
 	);
 };

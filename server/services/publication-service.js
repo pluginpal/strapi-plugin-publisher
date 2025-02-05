@@ -1,11 +1,8 @@
-'use strict';
-
 import getPluginService from '../utils/getPluginService';
 import getPluginEntityUid from '../utils/getEntityUId';
 import getDeepPopulate from '../utils/populate';
 
 const actionUId = getPluginEntityUid('action');
-console.log('actionUId', actionUId);
 export default ({ strapi }) => ({
 	/**
 	 * Publish a single record
@@ -54,7 +51,6 @@ export default ({ strapi }) => ({
 		const entityId = record.entityId || 1;
 
 		const entity = await strapi.entityService.findOne(record.entitySlug, entityId);
-
 		// ensure entity exists before attempting mutations.
 		if (!entity) {
 			return;
