@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { Box, Flex, Typography, Divider, Loader } from '@strapi/design-system';
+import { Box, Typography, Divider, Loader } from '@strapi/design-system';
 import Action from '../Action';
 import { getTrad } from '../../utils/getTrad';
 import { useSettings } from '../../hooks/useSettings';
@@ -16,39 +16,49 @@ const ActionManagerComponent = ({ document, entity }) => {
 	const { isLoading, data, isRefetching } = getSettings();
 
 	useEffect(() => {
-		if (!isLoading && !isRefetching) {
-			if (!data.contentTypes?.length || data.contentTypes?.find((uid) => uid === document.model)) {
+		if (! isLoading && ! isRefetching) {
+			if (! data.contentTypes?.length || data.contentTypes?.find((uid) => uid === document.model)) {
 				setShowActions(true);
 			}
 		}
 	}, [isLoading, isRefetching, data, document]);
 
-	if (!showActions) {
+	if (! showActions) {
 		return null;
 	}
 
 	return (
-		<Box marginTop={8}>
+		<>
+			<Box marginTop={2} marginBottom={4}>
+				<Divider />
+			</Box>
 			<Typography variant="sigma" textColor="neutral600">
 				{formatMessage({
 					id: getTrad('plugin.name'),
 					defaultMessage: 'Publisher',
 				})}
 			</Typography>
-			<Box marginTop={2} marginBottom={4}>
+			<Box marginTop={2}>
 				<Divider />
 			</Box>
-			<Flex marginTop={2} gap={{ initial: 2 }} direction={{ initial: 'column' }}>
-				{actionModes.map((mode, index) => (
+			{actionModes.map((mode, index) => (
+				<div className="actionButton" key={index}>
 					<Action
 						mode={mode}
-						key={`${mode}-${index}`}
+						key={mode + index}
 						documentId={document.documentId}
 						entitySlug={entity.model}
 					/>
-				))}
-			</Flex>
-		</Box>
+				</div>
+			))}
+			<style>
+				{`
+					.actionButton {
+					    width: 100%;
+					}
+				`}
+			</style>
+		</>
 	);
 };
 
@@ -68,28 +78,13 @@ const ActionManager = () => {
 		);
 	}
 
-	if (!document) {
-		console.warn('Document is null or undefined.');
+	if (! document || ! entity) {
 		return null;
 	}
 
-	if (!entity) {
-		console.warn('Entity is null or undefined.');
+	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
 		return null;
 	}
-
-	if (!entity.hasDraftAndPublish) {
-		console.warn('Entity does not have draft and publish enabled.');
-		return null;
-	}
-
-	if (entity.isCreatingEntry) {
-		console.warn('Entity is in creating mode.');
-		return null;
-	}
-
-	console.log('Document:', document);
-	console.log('Entity:', entity);
 
 	return <ActionManagerComponent document={document} entity={entity} />;
 };

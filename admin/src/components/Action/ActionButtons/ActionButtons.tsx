@@ -67,8 +67,8 @@ const ActionButtons = ({
 
 	if (isEditing) {
 		return (
-			<Flex marginTop={2} gap={{initial: 2}} direction={{initial: 'row'}}>
-				<Button fullWidth onClick={handleEditChange} variant="tertiary" startIcon={<Pencil />}>
+			<Flex marginTop={2} marginBottom={4} gap={{initial: 2}} direction={{initial: 'row'}}>
+			<Button fullWidth onClick={handleEditChange} variant="tertiary" startIcon={<Pencil />}>
 					{formatMessage({
 						id: getTrad(`action.footer.${mode}.button.edit`),
 						defaultMessage: `Edit`,

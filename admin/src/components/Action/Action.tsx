@@ -72,7 +72,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 
 	// Handlers
 	function handleDateChange(date) {
-		console.log(date, 'date in ActionDateTimePicker');
+		//console.log(date, 'date in ActionDateTimePicker');
 		//setExecuteAt(date.toISOString());
 		setExecuteAt(date);
 	}
@@ -94,22 +94,18 @@ const Action = ({ mode, documentId, entitySlug }) => {
 				await schema.validate(entity.initialData, { abortEarly: false });
 			}
 
-			console.log(executeAt, 'executeAt in handleOnSave');
-
 			// Create of update actie
 			if (!actionId) {
 				const { data: response } = await createAction({
-					entityId: documentId,
 					mode,
+					entityId: documentId,
 					entitySlug,
 					executeAt,
 				});
-				console.log(response, 'response van createAction');
 				if (response.data && response.data.id) {
 					setActionId(response.data.id);
 				}
 			} else {
-				console.log(executeAt, 'executeAt in handleOnSave');
 				await updateAction({ id: actionId, body: { executeAt } });
 			}
 
@@ -149,7 +145,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 
 	// Render
 	return (
-		<Flex marginTop={2} gap={{ initial: 2 }} direction={{ initial: 'column' }}>
+		<Flex gap={{ initial: 2 }} direction={{ initial: 'column' }}>
 			<ActionTimePicker
 				onChange={handleDateChange}
 				executeAt={executeAt}

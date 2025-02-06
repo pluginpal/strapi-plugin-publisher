@@ -69,9 +69,8 @@ export default ({ strapi }) => ({
 		}
 
 		// remove any used actions
-		// strapi.document.delete(actionUId, record.id);
-			await strapi.documents(actionUId).delete({
-				documentId: record.id,
-			});
+		await strapi.documents(actionUId).delete({
+			documentId: record.documentId,
+		});
 	},
 });

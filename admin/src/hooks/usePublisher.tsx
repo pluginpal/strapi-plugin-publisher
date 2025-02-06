@@ -82,7 +82,6 @@ export const usePublisher = () => {
 
 	const { mutateAsync: updateAction } = useMutation({
 		mutationFn: function ({ id, body }) {
-			console.log('body', body, 'id', id);
 			return put(`/${pluginId}/actions/${id}`, { data: body });
 		},
 		onSuccess: ({ data: response }) => {
@@ -94,7 +93,6 @@ export const usePublisher = () => {
 				data.entitySlug,
 				data.mode,
 			]);
-			console.log('response', response);
 			onSuccessHandler({
 				queryKey,
 				notification: {

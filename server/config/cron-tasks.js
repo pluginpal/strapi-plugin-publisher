@@ -7,9 +7,6 @@ const registerCronTasks =  ({ strapi }) => {
 		publisherCronTask: {
 			options: settings.actions.syncFrequency,
 			task: async () => {
-				const allRecords = await getPluginService('action').find();
-				console.log('All records:', allRecords);
-
 				// fetch all actions that have passed
 				const records = await getPluginService('action').find({
 					filters: {
@@ -22,7 +19,6 @@ const registerCronTasks =  ({ strapi }) => {
 
 				// process action records
 				for (const record of records.results) {
-					console.log('Processing record:', record);
 					getPluginService('publicationService').toggle(record, record.mode);
 				}
 			},
