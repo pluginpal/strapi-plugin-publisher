@@ -4,8 +4,13 @@ module.exports = {
 		es6: true,
 		node: true,
 	},
+	parserOptions: {
+		ecmaVersion: 2020,
+		sourceType: 'module',
+	},
 	extends: ['eslint:recommended', 'plugin:node/recommended', 'prettier'],
 	rules: {
+		'node/no-unsupported-features/es-syntax': 'off',
 		'node/no-extraneous-require': [
 			'error',
 			{

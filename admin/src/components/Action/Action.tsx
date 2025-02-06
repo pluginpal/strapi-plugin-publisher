@@ -72,7 +72,8 @@ const Action = ({ mode, documentId, entitySlug }) => {
 
 	// Handlers
 	function handleDateChange(date) {
-		setExecuteAt(date.toISOString());
+		setExecuteAt(date);
+		//setExecuteAt(date.toISOString());
 	}
 
 	const handleOnEdit = () => {
@@ -101,7 +102,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 					executeAt,
 				});
 				if (response.data && response.data.id) {
-					setActionId(response.data.id);
+					setActionId(response.data.documentId);
 				}
 			} else {
 				await updateAction({ id: actionId, body: { executeAt } });

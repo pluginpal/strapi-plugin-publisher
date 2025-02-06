@@ -4,7 +4,7 @@ const backendESLint = require('./.eslintrc.backend.js');
 module.exports = {
 	$schema: 'https://json.schemastore.org/eslintrc',
 	parserOptions: {
-		ecmaVersion: 2018,
+		ecmaVersion: 2020,
 	},
 	rules: {
 		indent: ['error', 'tab'],
