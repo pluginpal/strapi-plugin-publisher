@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useIntl } from 'react-intl';
-import { DateTimePicker, Flex, Typography } from '@strapi/design-system';
+import { DateTimePicker, Typography } from '@strapi/design-system';
 import { getTrad } from '../../../utils/getTrad';
 import { useSettings } from '../../../hooks/useSettings';
 
@@ -48,7 +48,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 	return (
 		<>
 			<div id="action-date-time-picker">
-				<Typography variant="sigma" textColor="neutral600" marginBottom={1}>
+				<Typography variant="sigma" textColor="neutral600">
 					{formatMessage({
 						id: getTrad(`action.header.${mode}.title`),
 						defaultMessage: `${mode} Date`,

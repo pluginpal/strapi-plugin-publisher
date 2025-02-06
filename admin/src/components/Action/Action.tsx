@@ -72,9 +72,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 
 	// Handlers
 	function handleDateChange(date) {
-		//console.log(date, 'date in ActionDateTimePicker');
-		//setExecuteAt(date.toISOString());
-		setExecuteAt(date);
+		setExecuteAt(date.toISOString());
 	}
 
 	const handleOnEdit = () => {
