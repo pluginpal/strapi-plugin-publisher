@@ -7,7 +7,7 @@ import isNaN from 'lodash/isNaN';
 import toNumber from 'lodash/toNumber';
 import * as yup from 'yup';
 
-function isFieldTypeNumber(type: any) {
+function isFieldTypeNumber(type) {
 	return ['integer', 'biginteger', 'decimal', 'float', 'number'].includes(type);
 }
 

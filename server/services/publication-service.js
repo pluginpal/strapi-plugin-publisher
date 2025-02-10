@@ -36,7 +36,7 @@ export default ({ strapi }) => ({
 		});
 
 		const { hooks } = getPluginService('settingsService').get();
-		// Events emitten
+		// Emit events
 		await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
 		await getPluginService('emitService').unpublish(uid, unpublishedEntity);
 		await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
@@ -49,7 +49,6 @@ export default ({ strapi }) => ({
 		// handle single content type, id is always 1
 		const entityId = record.entityId || 1;
 
-		// const entity = await strapi.entityService.findOne(record.entitySlug, entityId);
 			const entity = await strapi.documents(record.entitySlug).findOne({
 				documentId: record.entityId,
 			});
@@ -59,7 +58,6 @@ export default ({ strapi }) => ({
 			return;
 		}
 
-		// Check with boaz if this is a good way to check if the entity is already published
 		if (mode === 'publish') {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),

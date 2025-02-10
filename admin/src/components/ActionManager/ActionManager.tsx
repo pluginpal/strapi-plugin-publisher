@@ -64,25 +64,17 @@ const ActionManagerComponent = ({ document, entity }) => {
 
 const ActionManager = () => {
 	const entity = useContentManagerContext();
-	const { document, isLoading } = useDocument({
+	const { document } = useDocument({
 		documentId: entity?.id,
 		model: entity?.model,
 		collectionType: entity?.collectionType,
 	});
 
-	if (isLoading) {
-		return (
-			<Box marginTop={8}>
-				<Loader>Loading document data...</Loader>
-			</Box>
-		);
-	}
-
-	if (! document || ! entity) {
+	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
 		return null;
 	}
 
-	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
+	if (! document || ! entity) {
 		return null;
 	}
 

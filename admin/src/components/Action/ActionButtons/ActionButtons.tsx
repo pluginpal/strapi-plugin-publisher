@@ -67,20 +67,26 @@ const ActionButtons = ({
 
 	if (isEditing) {
 		return (
-			<Flex marginTop={2} marginBottom={4} gap={{initial: 2}} direction={{initial: 'row'}}>
-			<Button fullWidth onClick={handleEditChange} variant="tertiary" startIcon={<Pencil />}>
-					{formatMessage({
-						id: getTrad(`action.footer.${mode}.button.edit`),
-						defaultMessage: `Edit`,
-					})}
-				</Button>
-				<Button fullWidth variant="danger-light" startIcon={<Trash />} onClick={handleDeleteChange}>
-					{formatMessage({
-						id: getTrad(`action.footer.${mode}.button.delete`),
-						defaultMessage: `Delete`,
-					})}
-				</Button>
-			</Flex>
+		<>
+			<Button onClick={handleEditChange}
+							fullWidth
+							variant="tertiary"
+							startIcon={<Pencil />}>
+				{formatMessage({
+					id: getTrad(`action.footer.${mode}.button.edit`),
+					defaultMessage: `Edit`,
+				})}
+			</Button>
+			<Button onClick={handleDeleteChange}
+							fullWidth
+							variant="danger-light"
+							startIcon={<Trash />}>
+				{formatMessage({
+					id: getTrad(`action.footer.${mode}.button.delete`),
+					defaultMessage: `Delete`,
+				})}
+			</Button>
+		</>
 		);
 	}
 
@@ -102,7 +108,7 @@ const ActionButtons = ({
 
 ActionButtons.propTypes = {
 	mode: PropTypes.string.isRequired,
-	executeAt: PropTypes.string,
+	executeAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 	isEditing: PropTypes.bool.isRequired,
 	onEdit: PropTypes.func,
 	onCreate: PropTypes.func,

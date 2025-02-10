@@ -79,7 +79,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 };
 
 ActionDateTimePicker.propTypes = {
-	executeAt: PropTypes.string,
+	executeAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 	onChange: PropTypes.func,
 	mode: PropTypes.string.isRequired,
 	isCreating: PropTypes.bool.isRequired,

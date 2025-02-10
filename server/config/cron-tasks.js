@@ -11,7 +11,6 @@ const registerCronTasks =  ({ strapi }) => {
 				const records = await getPluginService('action').find({
 					filters: {
 						executeAt: {
-							// $lte: new Date(Date.now()).toISOString(),
 							$lte: new Date(Date.now()),
 						},
 					},
