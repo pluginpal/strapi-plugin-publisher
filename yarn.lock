@@ -2412,10 +2412,37 @@
     lodash "4.17.21"
     winston "3.10.0"
 
-"@strapi/pack-up@5.0.2", "@strapi/pack-up@^5.0.1":
+"@strapi/pack-up@5.0.2":
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@strapi/pack-up/-/pack-up-5.0.2.tgz#cd7110048b7c8806618a03e676ba9b70f9141086"
   integrity sha512-DWicuAyjLjVCxL2FQeTF3keakfHmfKx2BuBhBXEhiSWv7wW05MlW9fQqpZBQMKdkcYuzGnKwryhZQwaOF2CoOQ==
+  dependencies:
+    "@vitejs/plugin-react-swc" "3.7.0"
+    boxen "5.1.2"
+    browserslist-to-esbuild "1.2.0"
+    chalk "4.1.2"
+    chokidar "4.0.1"
+    commander "8.3.0"
+    esbuild "0.20.2"
+    esbuild-register "3.5.0"
+    get-latest-version "5.1.0"
+    git-url-parse "13.1.1"
+    ini "4.1.2"
+    ora "5.4.1"
+    outdent "0.8.0"
+    pkg-up "3.1.0"
+    prettier "3.3.3"
+    prettier-plugin-packagejson "2.5.2"
+    prompts "2.4.2"
+    rxjs "7.8.1"
+    typescript "5.4.4"
+    vite "5.4.8"
+    yup "0.32.9"
+
+"@strapi/pack-up@^5.0.1":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@strapi/pack-up/-/pack-up-5.1.0.tgz#98a1b2d50a44741b47a58c00ce3ef254130e2f13"
+  integrity sha512-Mi0hVkt3WgKVTlLCe4aUqGlhHWZesXTEr8PiDgYbcDexEozLgbTjcNcRoK6omehDlL4fBQ5XvwWoO+XmhQttUA==
   dependencies:
     "@vitejs/plugin-react-swc" "3.7.0"
     boxen "5.1.2"
@@ -2484,9 +2511,9 @@
     yup "0.32.9"
 
 "@strapi/sdk-plugin@^5.2.7":
-  version "5.2.8"
-  resolved "https://registry.yarnpkg.com/@strapi/sdk-plugin/-/sdk-plugin-5.2.8.tgz#ac5c376682a76be32f47e6b2403aab57dcb740dc"
-  integrity sha512-Il8HCG7MS/1hocyfUDKibCdjSd1JTgOnU/vTmg0aBUZUYJzCT1W7bOQPbKegUDqFb0oS9Em9UAWrGhp/VuUQ7w==
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@strapi/sdk-plugin/-/sdk-plugin-5.3.1.tgz#944ca10c927330c5ad9084a6ac7a5c0278d5e4ef"
+  integrity sha512-8cOrkjyZOLWs3vAWD/PVcK9Pj27RMTR/Ky2fUCy6puKmx4rKsXxvdqxLKJKYnszJnUq8NmbbTJSLKMMdXVvzBQ==
   dependencies:
     "@strapi/pack-up" "^5.0.1"
     "@types/prompts" "2.4.9"

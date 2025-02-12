@@ -22,7 +22,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 	const { isLoading, data, isRefetching } = getSettings();
 
 	useEffect(() => {
-		if (!isLoading &&  isRefetching) {
+		if (!isLoading && !isRefetching) {
 			if (data) {
 				setStep(data.components.dateTimePicker.step);
 				const customLocale = data.components.dateTimePicker.locale;
