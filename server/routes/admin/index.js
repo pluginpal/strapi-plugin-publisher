@@ -1,9 +1,7 @@
-'use strict';
+import actionRoutes from './action-routes';
+import settingsRoutes from './settings-routes';
 
-const actionRoutes = require('./action-routes');
-const settingsRoutes = require('./settings-routes');
-
-module.exports = {
+export default {
 	type: 'admin',
 	routes: [...actionRoutes, ...settingsRoutes],
-};
+}

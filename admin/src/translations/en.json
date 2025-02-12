@@ -9,6 +9,7 @@
 	"action.footer.unpublish.button.edit": "Edit",
 	"action.footer.unpublish.button.delete": "Delete",
 	"action.footer.unpublish.button.save": "Save",
+	"action.notification.delete.action.error": "Delete action failed",
 	"action.notification.publish.create.success": "Publish action created successfully",
 	"action.notification.publish.delete.success": "Publish action deleted successfully",
 	"action.notification.publish.update.success": "Publish action updated successfully",

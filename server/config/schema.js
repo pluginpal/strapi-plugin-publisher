@@ -1,6 +1,4 @@
-'use strict';
-
-const yup = require('yup');
+import * as yup from 'yup';
 
 const pluginConfigSchema = yup.object().shape({
 	actions: yup
@@ -23,6 +21,4 @@ const pluginConfigSchema = yup.object().shape({
 	contentTypes: yup.array().of(yup.string()).optional(),
 });
 
-module.exports = {
-	pluginConfigSchema,
-};
+export default pluginConfigSchema;

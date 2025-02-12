@@ -1,5 +1,5 @@
 // From https://github.com/strapi/strapi/blob/main/packages/core/admin/admin/src/content-manager/utils/schema.js
-import { translatedErrors as errorsTrads } from '@strapi/helper-plugin';
+import { translatedErrors as errorsTrads } from '@strapi/strapi/admin';
 import get from 'lodash/get';
 import isBoolean from 'lodash/isBoolean';
 import isEmpty from 'lodash/isEmpty';

@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query';
-import { useFetchClient } from '@strapi/helper-plugin';
+import { useFetchClient } from '@strapi/strapi/admin';
 
 import { pluginId } from '../pluginId';
 

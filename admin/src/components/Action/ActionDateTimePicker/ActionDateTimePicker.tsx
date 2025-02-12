@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useIntl } from 'react-intl';
-import { DateTimePicker, Typography, Stack } from '@strapi/design-system';
+import { DateTimePicker, Typography } from '@strapi/design-system';
 import { getTrad } from '../../../utils/getTrad';
 import { useSettings } from '../../../hooks/useSettings';
 
@@ -25,48 +25,61 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 		if (!isLoading && !isRefetching) {
 			if (data) {
 				setStep(data.components.dateTimePicker.step);
-
 				const customLocale = data.components.dateTimePicker.locale;
 				try {
-					Intl.DateTimeFormat(customLocale);
-					setLocale(customLocale);
+					// Validate the locale using Intl.DateTimeFormat
+					new Intl.DateTimeFormat(customLocale);
+					setLocale(customLocale); // Set the custom locale if valid
 				} catch (error) {
-					console.log(
-						`'${customLocale}' is not a valid format, using browser locale: '${browserLocale}'`
+					console.warn(
+						`'${customLocale}' is not a valid locale format. Falling back to browser locale: '${browserLocale}'`,
 					);
+					setLocale(browserLocale);
 				}
 			}
 		}
 	}, [isLoading, isRefetching]);
 
-	if (!isCreating && !isEditing) {
+	if (! isCreating && ! isEditing) {
 		return null;
 	}
 
 	return (
-		<div id="action-date-time-picker">
-			<Stack spacing={2}>
-				<Typography variant="sigma" textColor="neutral600" merginBottom={1}>
+		<>
+			<div id="action-date-time-picker">
+				<Typography variant="sigma" textColor="neutral600">
 					{formatMessage({
 						id: getTrad(`action.header.${mode}.title`),
 						defaultMessage: `${mode} Date`,
 					})}
 				</Typography>
+
 				<DateTimePicker
-					ariaLabel="datetime picker"
+					aria-label="datetime picker"
 					onChange={handleDateChange}
 					value={executeAt ? new Date(executeAt) : null}
-					disabled={!isCreating}
+					disabled={! isCreating}
 					step={step}
 					locale={locale}
 				/>
-			</Stack>
-		</div>
+			</div>
+			{/* TODO remove styling when this issue is fixed: https://github.com/strapi/design-system/issues/1853 */}
+			<style>
+				{`
+					#action-date-time-picker > div {
+					    flex-direction: column !important;
+					}
+					#action-date-time-picker > div > div {
+					    width: 100% !important;
+					}
+				`}
+			</style>
+		</>
 	);
 };
 
 ActionDateTimePicker.propTypes = {
-	executeAt: PropTypes.string,
+	executeAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 	onChange: PropTypes.func,
 	mode: PropTypes.string.isRequired,
 	isCreating: PropTypes.bool.isRequired,

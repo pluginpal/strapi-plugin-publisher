@@ -1,8 +1,6 @@
-'use strict';
+import actionRoutes from './action';
 
-const actionRoutes = require('./action');
-
-module.exports = {
+export default {
 	type: 'content-api',
 	routes: [...actionRoutes],
-};
+}

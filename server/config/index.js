@@ -1,9 +1,8 @@
-'use strict';
+import pluginConfigSchema from './schema';
 
-const { pluginConfigSchema } = require('./schema');
-
-module.exports = {
+export default {
 	default: () => ({
+		enabled: true,
 		actions: {
 			syncFrequency: '*/1 * * * *',
 		},

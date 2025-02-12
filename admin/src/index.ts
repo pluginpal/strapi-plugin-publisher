@@ -1,13 +1,13 @@
-import { prefixPluginTranslations } from '@strapi/helper-plugin';
 import pluginPkg from '../../package.json';
 import { pluginId } from './pluginId';
 import Initializer from './components/Initializer';
 import ActionManager from './components/ActionManager';
+import { prefixPluginTranslations } from './utils/prefixPluginTranslation';
 
 const name = pluginPkg.strapi.name;
 
 export default {
-	register(app) {
+	register(app: any) {
 		app.registerPlugin({
 			id: pluginId,
 			initializer: Initializer,
@@ -16,14 +16,16 @@ export default {
 		});
 	},
 
-	bootstrap(app) {
-		app.injectContentManagerComponent('editView', 'informations', {
-			name: name,
-			Component: ActionManager,
-		});
+	bootstrap(app: any) {
+		app.getPlugin('content-manager').injectComponent(
+			'editView',
+			'right-links',
+			{ name: 'action-manager', Component: ActionManager }
+		);
 	},
-
-	async registerTrads({ locales }) {
+	
+	async registerTrads(app: any) {
+		const { locales } = app;
 		const importedTrads = [];
 
 		for (const locale of locales) {

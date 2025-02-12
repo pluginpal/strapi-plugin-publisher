@@ -1,7 +1,5 @@
-const { pluginId } = require('./pluginId');
+import pluginId from './pluginId';
 
 const getPluginEntityUid = (entity) => `plugin::${pluginId}.${entity}`;
 
-module.exports = {
-	getPluginEntityUid,
-};
+export default getPluginEntityUid;

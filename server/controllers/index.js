@@ -1,9 +1,7 @@
-'use strict';
+import actionController from './action-controller';
+import settingsController from './settings-controller';
 
-const actionController = require('./action-controller');
-const settingsController = require('./settings-controller');
-
-module.exports = {
+export default {
 	actionController,
 	settingsController,
 };

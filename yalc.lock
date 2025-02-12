@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "strapi-plugin-publisher": {
+      "signature": "c84e75ead345ae5d779bac16f9f84cef",
+      "file": true
+    }
+  }
+}

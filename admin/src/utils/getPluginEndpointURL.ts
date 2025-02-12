@@ -6,4 +6,4 @@ import { pluginId } from '../pluginId';
  * @param {String} endpoint plugin specific endpoint
  * @returns {String} plugin id prefixed endpoint
  */
-export const getPluginEndpointURL = (endpoint) => `/${pluginId}/${endpoint}`;
+export const getPluginEndpointURL = (endpoint: any) => `/${pluginId}/${endpoint}`;

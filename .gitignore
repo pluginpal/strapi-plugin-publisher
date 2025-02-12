@@ -2,8 +2,10 @@
 coverage
 node_modules
 stats.json
+.yalc/
 
 # Cruft
 .DS_Store
 npm-debug.log
 .idea
+yalc.lock

@@ -1,8 +1,6 @@
-'use strict';
+import getPluginService from '../utils/getPluginService';
 
-const { getPluginService } = require('../utils/getPluginService');
-
-module.exports = () => ({
+export default {
 	/**
 	 *  Fetch the current plugin settings
 	 *
@@ -11,4 +9,4 @@ module.exports = () => ({
 	async find(ctx) {
 		ctx.send({ data: getPluginService('settingsService').get() });
 	},
-});
+};

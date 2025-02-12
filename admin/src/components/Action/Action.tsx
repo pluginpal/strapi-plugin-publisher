@@ -1,35 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { useRBAC, useCMEditViewDataManager, useNotification } from '@strapi/helper-plugin';
+import {
+	useNotification,
+	useRBAC,
+	unstable_useContentManagerContext as useContentManagerContext
+} from '@strapi/strapi/admin';
 import PropTypes from 'prop-types';
-import { usePublisher } from '../../hooks/usePublisher';
-import { Stack } from '@strapi/design-system';
 import ActionTimePicker from './ActionDateTimePicker';
 import ActionButtons from './ActionButtons/ActionButtons';
 import { ValidationError } from 'yup';
+import { usePublisher } from '../../hooks/usePublisher';
 import { getTrad } from '../../utils/getTrad';
 import { createYupSchema } from '../../utils/schema';
+import { Flex } from '@strapi/design-system';
+import { useIntl } from 'react-intl';
 
-const Action = ({ mode, entityId, entitySlug }) => {
+const Action = ({ mode, documentId, entitySlug }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
-	const entity = useCMEditViewDataManager();
-	const toggleNotification = useNotification();
+	const { formatMessage } = useIntl();
+	const entity = useContentManagerContext();
+	const { toggleNotification } = useNotification();
+	// State management
 	const [actionId, setActionId] = useState(0);
 	const [isEditing, setIsEditing] = useState(false);
-	const [executeAt, setExecuteAt] = useState(0);
+	const [executeAt, setExecuteAt] = useState(null);
 	const [isCreating, setIsCreating] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [canPublish, setCanPublish] = useState(true);
 
 	let schema;
+
+	// Schema validation for `publish` mode
 	if (mode === 'publish') {
-		const currentContentTypeLayout = entity.allLayoutData.contentType || {};
+		const currentContentTypeLayout = entity.contentType || {};
 		schema = createYupSchema(
 			currentContentTypeLayout,
-			{ components: entity.allLayoutData.components || {} },
+			{ components: entity.components || {} },
 			{ isCreatingEntry: entity.isCreatingEntry, isDraft: false, isFromComponent: false }
 		);
 	}
 
+	// Fetch RBAC permissions
 	const { isLoading: isLoadingPermissions, allowedActions } = useRBAC({
 		publish: [{ action: 'plugin::content-manager.explorer.publish', subject: entitySlug }],
 	});
@@ -44,20 +54,20 @@ const Action = ({ mode, entityId, entitySlug }) => {
 		isLoading: isLoadingAction,
 		data,
 		isRefetching: isRefetchingAction,
-	} = getAction({
+		} = getAction({
 		mode,
-		entityId,
+		entityId: documentId,
 		entitySlug,
 	});
 
-	// set initial data to state so its reactive
+	// Update state based on fetched action data
 	useEffect(() => {
 		setIsLoading(true);
 		if (!isLoadingAction && !isRefetchingAction) {
 			setIsLoading(false);
 			if (data) {
-				setActionId(data.id);
-				setExecuteAt(data.attributes.executeAt);
+				setActionId(data.documentId);
+				setExecuteAt(data.executeAt);
 				setIsEditing(true);
 			} else {
 				setActionId(0);
@@ -65,37 +75,39 @@ const Action = ({ mode, entityId, entitySlug }) => {
 		}
 	}, [isLoadingAction, isRefetchingAction]);
 
-	// handlers
+	// Handlers
 	function handleDateChange(date) {
 		setExecuteAt(date);
+		//setExecuteAt(date.toISOString());
 	}
 
-	function handleOnEdit() {
+	const handleOnEdit = () => {
 		setIsCreating(true);
 		setIsEditing(false);
-	}
+	};
 
-	function handleOnCreate() {
+	const handleOnCreate = () => {
 		setIsCreating(true);
-	}
+	};
 
-	async function handleOnSave() {
+	const handleOnSave = async () => {
 		setIsLoading(true);
 		try {
+			// Validate data with schema if `publish` mode
 			if (mode === 'publish' && schema) {
 				await schema.validate(entity.initialData, { abortEarly: false });
 			}
 
+			// Create of update actie
 			if (!actionId) {
 				const { data: response } = await createAction({
 					mode,
-					entityId,
+					entityId: documentId,
 					entitySlug,
 					executeAt,
 				});
-
 				if (response.data && response.data.id) {
-					setActionId(response.data.id);
+					setActionId(response.data.documentId);
 				}
 			} else {
 				await updateAction({ id: actionId, body: { executeAt } });
@@ -107,32 +119,43 @@ const Action = ({ mode, entityId, entitySlug }) => {
 			if (error instanceof ValidationError) {
 				toggleNotification({
 					type: 'warning',
-					message: {
+					message: formatMessage({
 						id: getTrad('action.notification.publish.validation.error'),
 						defaultMessage: 'Required fields must be saved before a publish date can be set',
-					},
+					})
 				});
 			}
 			console.error(error);
 		} finally {
 			setIsLoading(false);
 		}
-	}
+	};
 
-	async function handleOnDelete() {
+	const handleOnDelete = async () => {
+		setIsLoading(true);
 		try {
 			await deleteAction({ id: actionId });
 			setActionId(0);
-			setExecuteAt(0);
+			setExecuteAt(null);
 			setIsCreating(false);
 			setIsEditing(false);
 		} catch (error) {
+			toggleNotification({
+				type: 'warning',
+				message: formatMessage({
+					id: getTrad('action.notification.delete.action.error'),
+					defaultMessage: 'An error occurred while deleting the action.',
+				}),
+			});
 			console.error(error);
+		} finally {
+			setIsLoading(false);
 		}
-	}
+	};
 
+	// Render
 	return (
-		<Stack spacing={2}>
+		<Flex gap={{ initial: 2 }} direction={{ initial: 'column' }}>
 			<ActionTimePicker
 				onChange={handleDateChange}
 				executeAt={executeAt}
@@ -152,13 +175,13 @@ const Action = ({ mode, entityId, entitySlug }) => {
 				onSave={handleOnSave}
 				onDelete={handleOnDelete}
 			/>
-		</Stack>
+		</Flex>
 	);
 };
 
 Action.propTypes = {
 	mode: PropTypes.string.isRequired,
-	entityId: PropTypes.number.isRequired,
+	documentId: PropTypes.string.isRequired,
 	entitySlug: PropTypes.string.isRequired,
 };
 

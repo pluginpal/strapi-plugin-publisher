@@ -1,8 +1,8 @@
 import React from 'react';
 import { useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
-import { Button } from '@strapi/design-system';
-import { Check, Cross, Write, Pencil, Trash } from '@strapi/icons';
+import { Button, Flex } from '@strapi/design-system';
+import { Check, Cross, PaperPlane, Pencil, Trash } from '@strapi/icons';
 import { getTrad } from '../../../utils/getTrad';
 
 const ActionButtons = ({
@@ -54,7 +54,7 @@ const ActionButtons = ({
 				disabled={isLoading || !executeAt}
 				fullWidth
 				variant="success-light"
-				startIcon={<Write />}
+				startIcon={<PaperPlane />}
 				onClick={handleSaveChange}
 			>
 				{formatMessage({
@@ -67,20 +67,26 @@ const ActionButtons = ({
 
 	if (isEditing) {
 		return (
-			<>
-				<Button fullWidth onClick={handleEditChange} variant="tertiary" startIcon={<Pencil />}>
-					{formatMessage({
-						id: getTrad(`action.footer.${mode}.button.edit`),
-						defaultMessage: `Edit`,
-					})}
-				</Button>
-				<Button fullWidth variant="danger-light" startIcon={<Trash />} onClick={handleDeleteChange}>
-					{formatMessage({
-						id: getTrad(`action.footer.${mode}.button.delete`),
-						defaultMessage: `Delete`,
-					})}
-				</Button>
-			</>
+		<>
+			<Button onClick={handleEditChange}
+							fullWidth
+							variant="tertiary"
+							startIcon={<Pencil />}>
+				{formatMessage({
+					id: getTrad(`action.footer.${mode}.button.edit`),
+					defaultMessage: `Edit`,
+				})}
+			</Button>
+			<Button onClick={handleDeleteChange}
+							fullWidth
+							variant="danger-light"
+							startIcon={<Trash />}>
+				{formatMessage({
+					id: getTrad(`action.footer.${mode}.button.delete`),
+					defaultMessage: `Delete`,
+				})}
+			</Button>
+		</>
 		);
 	}
 
@@ -102,7 +108,7 @@ const ActionButtons = ({
 
 ActionButtons.propTypes = {
 	mode: PropTypes.string.isRequired,
-	executeAt: PropTypes.string,
+	executeAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 	isEditing: PropTypes.bool.isRequired,
 	onEdit: PropTypes.func,
 	onCreate: PropTypes.func,

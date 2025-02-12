@@ -1,30 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useFetchClient, useNotification } from '@strapi/helper-plugin';
-
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
+import { useIntl } from 'react-intl';
 import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
 
-const buildQueryKey = (args) => {
-	return args.filter((a) => a);
-};
+const buildQueryKey = (args) => args.filter((a) => a);
 
 export const usePublisher = () => {
-	const toggleNotification = useNotification();
+	const { toggleNotification } = useNotification();
 	const { del, post, put, get } = useFetchClient();
 	const queryClient = useQueryClient();
+	const { formatMessage } = useIntl();
 
 	function onSuccessHandler({ queryKey, notification }) {
 		queryClient.invalidateQueries(queryKey);
 		toggleNotification({
 			type: notification.type,
-			message: { id: getTrad(notification.tradId) },
+			message: formatMessage({
+				id: getTrad(notification.tradId),
+				defaultMessage: 'Action completed successfully',
+			}),
 		});
 	}
 
 	function onErrorHandler(error) {
 		toggleNotification({
-			type: 'warning',
-			message: error.response?.error?.message || error.message || { id: 'notification.error' },
+			type: 'danger',
+			message:
+				error.response?.error?.message ||
+				error.message ||
+				formatMessage({
+					id: 'notification.error',
+					defaultMessage: 'An unexpected error occurred',
+				}),
 		});
 	}
 
@@ -33,8 +41,8 @@ export const usePublisher = () => {
 			queryKey: buildQueryKey([
 				pluginId,
 				'entity-action',
-				filters.entityId,
-				filters.sentitySlug,
+				filters.documentId,
+				filters.entitySlug,
 				filters.mode,
 			]),
 			queryFn: function () {
@@ -57,16 +65,15 @@ export const usePublisher = () => {
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
-				data.attributes.entityId,
-				data.attributes.entitySlug,
-				data.attributes.mode,
+				data.documentId,
+				data.entitySlug,
+				data.mode,
 			]);
-
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${data.attributes.mode}.create.success`,
+					tradId: `action.notification.${pluginId}.create.success`,
 				},
 			});
 		},
@@ -82,16 +89,15 @@ export const usePublisher = () => {
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
-				data.attributes.entityId,
-				data.attributes.entitySlug,
-				data.attributes.mode,
+				data.documentId,
+				data.entitySlug,
+				data.mode,
 			]);
-
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${data.attributes.mode}.update.success`,
+					tradId: `action.notification.${pluginId}.update.success`,
 				},
 			});
 		},
@@ -102,21 +108,16 @@ export const usePublisher = () => {
 		mutationFn: function ({ id }) {
 			return del(`/${pluginId}/actions/${id}`);
 		},
-		onSuccess: ({ data: response }) => {
-			const { data } = response;
+		onSuccess: () => {
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
-				data.attributes.entityId,
-				data.attributes.entitySlug,
-				data.attributes.mode,
 			]);
-
 			onSuccessHandler({
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${data.attributes.mode}.delete.success`,
+					tradId: `action.notification.delete.success`,
 				},
 			});
 		},
