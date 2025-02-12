@@ -9,12 +9,9 @@ export default ({ strapi }) => ({
 	 *
 	 */
 	async publish(uid, entityId = {}) {
-		const populateRelations = strapi.config.get('server.webhooks.populateRelations', true);
 		const publishedEntity = await strapi.documents(uid).publish({
 			documentId: entityId,
-			populate: populateRelations
-				? getDeepPopulate(uid, {})
-				: getDeepPopulate(uid, { countMany: true, countOne: true }),
+			populate: getDeepPopulate(uid, { countMany: true, countOne: true }),
 		});
 		const { hooks } = getPluginService('settingsService').get();
 		// emit publish event
@@ -27,12 +24,9 @@ export default ({ strapi }) => ({
 	 *
 	 */
 	async unpublish(uid, entityId) {
-		const populateRelations = strapi.config.get('server.webhooks.populateRelations', true);
 		const unpublishedEntity = await strapi.documents(uid).unpublish({
 			documentId: entityId,
-			populate: populateRelations
-				? getDeepPopulate(uid, {})
-				: getDeepPopulate(uid, { countMany: true, countOne: true }),
+			populate: getDeepPopulate(uid, { countMany: true, countOne: true }),
 		});
 
 		const { hooks } = getPluginService('settingsService').get();
@@ -58,11 +52,12 @@ export default ({ strapi }) => ({
 			return;
 		}
 
-		if (mode === 'publish') {
+		// ensure entity is in correct publication status
+		if (!entity.publishedAt && mode === 'publish') {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});
-		} else if (mode === 'unpublish') {
+		} else if (entity.publishedAt && mode === 'unpublish') {
 			await this.unpublish(record.entitySlug, entityId);
 		}
 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { Box, Typography, Divider, Loader } from '@strapi/design-system';
+import { Box, Typography, Divider } from '@strapi/design-system';
 import Action from '../Action';
 import { getTrad } from '../../utils/getTrad';
 import { useSettings } from '../../hooks/useSettings';
-import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
-import { unstable_useDocument as useDocument } from '@strapi/strapi/admin';
+import {
+	unstable_useDocument as useDocument,
+	unstable_useContentManagerContext as useContentManagerContext,
+} from '@strapi/strapi/admin';
 
 const actionModes = ['publish', 'unpublish'];
 
@@ -69,6 +71,9 @@ const ActionManager = () => {
 		model: entity?.model,
 		collectionType: entity?.collectionType,
 	});
+
+	console.log(document,'document');
+	console.log(entity,'entity');
 
 	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
 		return null;

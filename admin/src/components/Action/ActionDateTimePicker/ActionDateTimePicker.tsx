@@ -7,7 +7,6 @@ import { useSettings } from '../../../hooks/useSettings';
 
 import './ActionDateTimerPicker.css';
 
-//@ts-ignore
 const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange }) => {
 	const { formatMessage, locale: browserLocale } = useIntl();
 	const [locale, setLocale] = useState(browserLocale);
@@ -23,7 +22,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 	const { isLoading, data, isRefetching } = getSettings();
 
 	useEffect(() => {
-		if (! isLoading && ! isRefetching) {
+		if (!isLoading &&  isRefetching) {
 			if (data) {
 				setStep(data.components.dateTimePicker.step);
 				const customLocale = data.components.dateTimePicker.locale;
@@ -64,6 +63,7 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 					locale={locale}
 				/>
 			</div>
+			{/* TODO remove styling when this issue is fixed: https://github.com/strapi/design-system/issues/1853 */}
 			<style>
 				{`
 					#action-date-time-picker > div {

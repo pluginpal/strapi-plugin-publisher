@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNotification, useRBAC } from '@strapi/strapi/admin';
+import {
+	useNotification,
+	useRBAC,
+	unstable_useContentManagerContext as useContentManagerContext
+} from '@strapi/strapi/admin';
 import PropTypes from 'prop-types';
-import { unstable_useContentManagerContext as useContentManagerContext } from '@strapi/strapi/admin';
 import ActionTimePicker from './ActionDateTimePicker';
 import ActionButtons from './ActionButtons/ActionButtons';
 import { ValidationError } from 'yup';
@@ -9,9 +12,11 @@ import { usePublisher } from '../../hooks/usePublisher';
 import { getTrad } from '../../utils/getTrad';
 import { createYupSchema } from '../../utils/schema';
 import { Flex } from '@strapi/design-system';
+import { useIntl } from 'react-intl';
 
 const Action = ({ mode, documentId, entitySlug }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
+	const { formatMessage } = useIntl();
 	const entity = useContentManagerContext();
 	const { toggleNotification } = useNotification();
 	// State management
@@ -48,7 +53,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 	const {
 		isLoading: isLoadingAction,
 		data,
-			isRefetching: isRefetchingAction,
+		isRefetching: isRefetchingAction,
 		} = getAction({
 		mode,
 		entityId: documentId,
@@ -62,13 +67,13 @@ const Action = ({ mode, documentId, entitySlug }) => {
 			setIsLoading(false);
 			if (data) {
 				setActionId(data.documentId);
-				setExecuteAt(data.executeAt || data.publishedAt);
+				setExecuteAt(data.executeAt);
 				setIsEditing(true);
 			} else {
 				setActionId(0);
 			}
 		}
-	}, [isLoadingAction, isRefetchingAction, data]);
+	}, [isLoadingAction, isRefetchingAction]);
 
 	// Handlers
 	function handleDateChange(date) {
@@ -113,8 +118,11 @@ const Action = ({ mode, documentId, entitySlug }) => {
 		} catch (error) {
 			if (error instanceof ValidationError) {
 				toggleNotification({
-					type: 'danger',
-					message: getTrad('action.notification.publish.validation.error'),
+					type: 'warning',
+					message: formatMessage({
+						id: getTrad('action.notification.publish.validation.error'),
+						defaultMessage: 'Required fields must be saved before a publish date can be set',
+					})
 				});
 			}
 			console.error(error);
@@ -133,8 +141,11 @@ const Action = ({ mode, documentId, entitySlug }) => {
 			setIsEditing(false);
 		} catch (error) {
 			toggleNotification({
-				type: 'danger',
-				message: 'An error occurred while deleting the action.',
+				type: 'warning',
+				message: formatMessage({
+					id: getTrad('action.notification.delete.action.error'),
+					defaultMessage: 'An error occurred while deleting the action.',
+				}),
 			});
 			console.error(error);
 		} finally {
