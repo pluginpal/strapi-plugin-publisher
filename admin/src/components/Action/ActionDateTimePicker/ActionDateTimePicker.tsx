@@ -66,6 +66,9 @@ const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange
 			{/* TODO remove styling when this issue is fixed: https://github.com/strapi/design-system/issues/1853 */}
 			<style>
 				{`
+					#action-date-time-picker {
+							width: 100% !important;
+					}
 					#action-date-time-picker > div {
 					    flex-direction: column !important;
 					}

@@ -12,7 +12,8 @@ The installation requirements are the same as Strapi itself and can be found in 
 
 ### Supported Strapi versions
 
-- v4.x.x
+- Strapi ^4.x.x (use `strapi-plugin-publisher@^1`)
+- Strapi ^5.2.x (use `strapi-plugin-publisher@^2`)
 
 **NOTE**: While this plugin may work with the older Strapi versions, they are not supported, it is always recommended to use the latest version of Strapi.
 

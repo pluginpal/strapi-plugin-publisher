@@ -1,6 +1,5 @@
 import getPluginService from '../utils/getPluginService';
 import getPluginEntityUid from '../utils/getEntityUId';
-import getDeepPopulate from '../utils/populate';
 
 const actionUId = getPluginEntityUid('action');
 export default ({ strapi }) => ({
@@ -11,7 +10,6 @@ export default ({ strapi }) => ({
 	async publish(uid, entityId = {}) {
 		const publishedEntity = await strapi.documents(uid).publish({
 			documentId: entityId,
-			populate: getDeepPopulate(uid, { countMany: true, countOne: true }),
 		});
 		const { hooks } = getPluginService('settingsService').get();
 		// emit publish event
@@ -26,9 +24,7 @@ export default ({ strapi }) => ({
 	async unpublish(uid, entityId) {
 		const unpublishedEntity = await strapi.documents(uid).unpublish({
 			documentId: entityId,
-			populate: getDeepPopulate(uid, { countMany: true, countOne: true }),
 		});
-
 		const { hooks } = getPluginService('settingsService').get();
 		// Emit events
 		await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
@@ -42,22 +38,26 @@ export default ({ strapi }) => ({
 	async toggle(record, mode) {
 		// handle single content type, id is always 1
 		const entityId = record.entityId || 1;
+		const draftsCount = await strapi.documents(record.entitySlug).count({
+			status: 'draft',
+		});
 
-			const entity = await strapi.documents(record.entitySlug).findOne({
-				documentId: record.entityId,
-			});
+		// Count only published documents
+		const publishedCount = await strapi.documents(record.entitySlug).count({
+			status: 'published',
+		});
 
 		// ensure entity exists before attempting mutations.
-		if (!entity) {
+		if (!draftsCount && !publishedCount) {
 			return;
 		}
 
 		// ensure entity is in correct publication status
-		if (!entity.publishedAt && mode === 'publish') {
+		if (mode === 'publish' && !publishedCount) {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});
-		} else if (entity.publishedAt && mode === 'unpublish') {
+		} else if (mode === 'unpublish' && publishedCount) {
 			await this.unpublish(record.entitySlug, entityId);
 		}
 
