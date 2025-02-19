@@ -4,7 +4,7 @@ A plugin for [Strapi](https://github.com/strapi/strapi) that provides the abilit
 
 [![Downloads](https://img.shields.io/npm/dm/strapi-plugin-publisher?style=for-the-badge)](https://img.shields.io/npm/dm/strapi-plugin-publisher?style=for-the-badge)
 [![Install size](https://img.shields.io/npm/l/strapi-plugin-publisher?style=for-the-badge)](https://img.shields.io/npm/l/strapi-plugin-publisher?style=for-the-badge)
-[![Package version](https://img.shields.io/github/v/release/ComfortablyCoding/strapi-plugin-publisher?style=for-the-badge)](https://img.shields.io/github/v/release/ComfortablyCoding/strapi-plugin-publisher?style=for-the-badge)
+[![Package version](https://img.shields.io/github/v/release/PluginPal/strapi-plugin-publisher?style=for-the-badge)](https://img.shields.io/github/v/release/PluginPal/strapi-plugin-publisher?style=for-the-badge)
 
 ## Requirements
 
@@ -92,32 +92,32 @@ Once the plugin has been installed, configured and enabled a `Publisher` section
 
 ### Single Content Type
 
-![Sample single content type publisher section](https://github.com/ComfortablyCoding/strapi-plugin-publisher/blob/master/assets/single.png?raw=true)
+![Sample single content type publisher section](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/single.png?raw=true)
 
 ### Collection Content Type
 
-![Sample collection content type publisher section](https://github.com/ComfortablyCoding/strapi-plugin-publisher/blob/master/assets/collection.png?raw=true)
+![Sample collection content type publisher section](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/collection.png?raw=true)
 
 ### Adding a (un)publish date
 
 Navigate to the entity record that should be (un)published, under the `informations` section click the `Add a (un)publish date` button. Enter in the date and click save, the entity record will then be (un)published at the specified time.
 
-![default](https://github.com/ComfortablyCoding/strapi-plugin-publisher/blob/master/assets/default.png?raw=true)
+![default](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/default.png?raw=true)
 
-![Add a (un)publish date](https://github.com/ComfortablyCoding/strapi-plugin-publisher/blob/master/assets/add.png?raw=true)
+![Add a (un)publish date](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/add.png?raw=true)
 
 ### Editing a (un)publish date
 
 Navigate to the entity record that requires its date changed, under the `informations` section click the `Edit (un)publish date` button. Enter in the new date and click save.
 
-![Edit a (un)publish date](https://github.com/ComfortablyCoding/strapi-plugin-publisher/blob/master/assets/edit-delete.png?raw=true)
+![Edit a (un)publish date](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/edit-delete.png?raw=true)
 
 ### Deleting a (un)publish date
 
 Navigate to the entity record that contains the date that should be removed, under the `informations` section click the `Delete (un)publish date` button.
 
-![Delete a (un)publish date](https://github.com/ComfortablyCoding/strapi-plugin-publisher/blob/master/assets/edit-delete.png?raw=true)
+![Delete a (un)publish date](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/edit-delete.png?raw=true)
 
 ## Bugs
 
-If any bugs are found please report them as a [Github Issue](https://github.com/ComfortablyCoding/strapi-plugin-publisher/issues)
+If any bugs are found please report them as a [Github Issue](https://github.com/PluginPal/strapi-plugin-publisher/issues)

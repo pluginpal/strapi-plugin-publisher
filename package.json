@@ -30,17 +30,17 @@
     },
     "maintainers": [
         {
-            "name": "@ComfortablyCoding",
-            "url": "https://github.com/ComfortablyCoding"
+            "name": "@PluginPal",
+            "url": "https://github.com/PluginPal"
         }
     ],
-    "homepage": "https://github.com/ComfortablyCoding/strapi-plugin-publisher#readme",
+    "homepage": "https://github.com/PluginPal/strapi-plugin-publisher#readme",
     "repository": {
         "type": "git",
-        "url": "https://github.com/ComfortablyCoding/strapi-plugin-publisher.git"
+        "url": "https://github.com/PluginPal/strapi-plugin-publisher.git"
     },
     "bugs": {
-        "url": "https://github.com/ComfortablyCoding/strapi-plugin-publisher/issues"
+        "url": "https://github.com/PluginPal/strapi-plugin-publisher/issues"
     },
     "dependencies": {
         "@strapi/design-system": "2.0.0-rc.11",
