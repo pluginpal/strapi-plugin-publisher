@@ -43,12 +43,11 @@
         "url": "https://github.com/PluginPal/strapi-plugin-publisher/issues"
     },
     "dependencies": {
-        "@strapi/design-system": "2.0.0-rc.11",
-        "@strapi/icons": "2.0.0-rc.11",
-        "@strapi/utils": "5.2.0",
-        "@strapi/strapi": "^5.2.0",
+        "@strapi/design-system": "^2.0.0-rc.11",
+        "@strapi/icons": "^2.0.0-rc.11",
         "lodash": "^4.17.21",
         "prop-types": "^15.8.1",
+        "react-intl": "^6.6.2",
         "react-query": "^3.39.3",
         "yup": "^0.32.9"
     },
@@ -65,14 +64,17 @@
         "prettier": "^3.1.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-router-dom": "^5.3.4",
-        "styled-components": "^5.3.3"
+        "react-router-dom": "^6.0.0",
+        "styled-components": "^6.0.0"
     },
     "peerDependencies": {
+        "@strapi/design-system": "^2.0.0-rc.11",
+        "@strapi/icons": "^2.0.0-rc.11",
+        "@strapi/utils": "^5.2.0",
         "@strapi/strapi": "^5.2.0",
         "react": "^17.0.0 || ^18.0.0",
-        "react-router-dom": "^5.3.4",
-        "styled-components": "^5.3.3"
+        "react-router-dom": "^6.0.0",
+        "styled-components": "^6.0.0"
     },
     "strapi": {
         "displayName": "Publisher",

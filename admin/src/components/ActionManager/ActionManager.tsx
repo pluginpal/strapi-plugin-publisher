@@ -72,9 +72,6 @@ const ActionManager = () => {
 		collectionType: entity?.collectionType,
 	});
 
-	console.log(document,'document');
-	console.log(entity,'entity');
-
 	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
 		return null;
 	}
