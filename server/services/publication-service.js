@@ -38,26 +38,22 @@ export default ({ strapi }) => ({
 	async toggle(record, mode) {
 		// handle single content type, id is always 1
 		const entityId = record.entityId || 1;
-		const draftsCount = await strapi.documents(record.entitySlug).count({
-			status: 'draft',
-		});
 
-		// Count only published documents
-		const publishedCount = await strapi.documents(record.entitySlug).count({
+		// Find the published entity
+		const publishedEntity = await strapi.documents(record.entitySlug).findOne({
+			documentId: entityId,
 			status: 'published',
 		});
 
-		// ensure entity exists before attempting mutations.
-		if (!draftsCount && !publishedCount) {
-			return;
-		}
+		// check if entity is published
+		const isPublished = !!publishedEntity;
 
 		// ensure entity is in correct publication status
-		if (mode === 'publish' && !publishedCount) {
+		if (mode === 'publish' && !isPublished) {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});
-		} else if (mode === 'unpublish' && publishedCount) {
+		} else if (mode === 'unpublish' && isPublished) {
 			await this.unpublish(record.entitySlug, entityId);
 		}
 
