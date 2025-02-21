@@ -45,11 +45,17 @@ export default ({ strapi }) => ({
 			status: 'published',
 		});
 
-		// check if entity is published
-		const isPublished = !!publishedEntity;
+		// Find the draft version of the entity
+		const draftEntity = await strapi.documents(record.entitySlug).findOne({
+			documentId: entityId,
+			status: 'draft',
+		});
 
-		// ensure entity is in correct publication status
-		if (mode === 'publish' && !isPublished) {
+		// Determine the current state of the entity
+		const isPublished = !! publishedEntity;
+		const isDraft = !! draftEntity;
+
+		if (mode === 'publish' && ! isPublished && isDraft) {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});
@@ -57,7 +63,7 @@ export default ({ strapi }) => ({
 			await this.unpublish(record.entitySlug, entityId);
 		}
 
-		// remove any used actions
+		// Remove any used actions
 		await strapi.documents(actionUId).delete({
 			documentId: record.documentId,
 		});
