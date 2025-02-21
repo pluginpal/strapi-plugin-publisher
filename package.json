@@ -6,6 +6,7 @@
     "scripts": {
         "lint": "eslint . --fix",
         "format": "prettier --write **/*.{ts,js,json,yml}",
+        "build": "strapi-plugin build",
         "watch": "strapi-plugin watch",
         "watch:link": "strapi-plugin watch:link"
     },
