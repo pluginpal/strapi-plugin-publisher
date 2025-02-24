@@ -14,7 +14,7 @@ export default {
 		},
 		components: {
 			dateTimePicker: {
-				step: 1,
+				step: 5,
 			},
 		},
 	}),
