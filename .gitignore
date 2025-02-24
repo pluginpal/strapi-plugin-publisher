@@ -3,6 +3,7 @@ coverage
 node_modules
 stats.json
 .yalc/
+dist
 
 # Cruft
 .DS_Store
