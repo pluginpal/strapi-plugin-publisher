@@ -55,7 +55,10 @@ export default ({ strapi }) => ({
 		const isPublished = !! publishedEntity;
 		const isDraft = !! draftEntity;
 
-		if (mode === 'publish' && ! isPublished && isDraft) {
+		// Determine if the draft entity is newer than the published entity, if it's considered modified
+		const isModified = isPublished && isDraft && draftEntity.updatedAt > publishedEntity.updatedAt;
+
+		if (mode === 'publish' && ((!isPublished && isDraft) || isModified)) {
 			await this.publish(record.entitySlug, entityId, {
 				publishedAt: record.executeAt ? new Date(record.executeAt) : new Date(),
 			});
