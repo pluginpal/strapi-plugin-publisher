@@ -95,7 +95,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 		try {
 			// Validate data with schema if `publish` mode
 			if (mode === 'publish' && schema) {
-				await schema.validate(entity.initialData, { abortEarly: false });
+				await schema.validate(entity.form.initialValues, { abortEarly: false });
 			}
 
 			// Create of update actie
