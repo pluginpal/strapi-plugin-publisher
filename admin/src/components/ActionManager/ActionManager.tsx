@@ -18,14 +18,14 @@ const ActionManagerComponent = ({ document, entity }) => {
 	const { isLoading, data, isRefetching } = getSettings();
 
 	useEffect(() => {
-		if (! isLoading && ! isRefetching) {
-			if (! data.contentTypes?.length || data.contentTypes?.find((uid) => uid === document.model)) {
+		if (!isLoading && !isRefetching) {
+			if (!data.contentTypes?.length || data.contentTypes?.find((uid) => uid === entity.slug)) {
 				setShowActions(true);
 			}
 		}
-	}, [isLoading, isRefetching, data, document]);
+	}, [isLoading, isRefetching]);
 
-	if (! showActions) {
+	if (!showActions) {
 		return null;
 	}
 
