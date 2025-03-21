@@ -8,28 +8,37 @@ export default ({ strapi }) => ({
 	 *
 	 */
 	async publish(uid, entityId = {}) {
-		const publishedEntity = await strapi.documents(uid).publish({
-			documentId: entityId,
-		});
-		const { hooks } = getPluginService('settingsService').get();
-		// emit publish event
-		await hooks.beforePublish({ strapi, uid, entity: publishedEntity });
-		await getPluginService('emitService').publish(uid, publishedEntity);
-		await hooks.afterPublish({ strapi, uid, entity: publishedEntity });
+		try {
+			const publishedEntity = await strapi.documents(uid).publish({
+				documentId: entityId,
+			});
+			
+			const { hooks } = getPluginService('settingsService').get();
+			// emit publish event
+			await hooks.beforePublish({ strapi, uid, entity: publishedEntity });
+			await getPluginService('emitService').publish(uid, publishedEntity);
+			await hooks.afterPublish({ strapi, uid, entity: publishedEntity });
+		} catch (error) {
+      strapi.log.error(`An error occurred when trying to publish document ${entityId} of type ${uid}: "${error}"`);
+		}
 	},
 	/**
 	 * Unpublish a single record
 	 *
 	 */
 	async unpublish(uid, entityId) {
-		const unpublishedEntity = await strapi.documents(uid).unpublish({
-			documentId: entityId,
-		});
-		const { hooks } = getPluginService('settingsService').get();
-		// Emit events
-		await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
-		await getPluginService('emitService').unpublish(uid, unpublishedEntity);
-		await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
+		try {
+			const unpublishedEntity = await strapi.documents(uid).unpublish({
+				documentId: entityId,
+			});
+			const { hooks } = getPluginService('settingsService').get();
+			// Emit events
+			await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
+			await getPluginService('emitService').unpublish(uid, unpublishedEntity);
+			await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
+		} catch (error) {
+      strapi.log.error(`An error occurred when trying to unpublish document ${entityId} of type ${uid}: "${error}"`);
+		}
 	},
 	/**
 	 * Toggle a records publication state

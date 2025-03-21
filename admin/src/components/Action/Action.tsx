@@ -1,24 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {
-	useNotification,
 	useRBAC,
-	unstable_useContentManagerContext as useContentManagerContext
 } from '@strapi/strapi/admin';
 import PropTypes from 'prop-types';
 import ActionTimePicker from './ActionDateTimePicker';
 import ActionButtons from './ActionButtons/ActionButtons';
-import { ValidationError } from 'yup';
 import { usePublisher } from '../../hooks/usePublisher';
-import { getTrad } from '../../utils/getTrad';
-import { createYupSchema } from '../../utils/schema';
 import { Flex } from '@strapi/design-system';
-import { useIntl } from 'react-intl';
 
 const Action = ({ mode, documentId, entitySlug }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
-	const { formatMessage } = useIntl();
-	const entity = useContentManagerContext();
-	const { toggleNotification } = useNotification();
 	// State management
 	const [actionId, setActionId] = useState(0);
 	const [isEditing, setIsEditing] = useState(false);
@@ -26,18 +17,6 @@ const Action = ({ mode, documentId, entitySlug }) => {
 	const [isCreating, setIsCreating] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [canPublish, setCanPublish] = useState(true);
-
-	let schema;
-
-	// Schema validation for `publish` mode
-	if (mode === 'publish') {
-		const currentContentTypeLayout = entity.contentType || {};
-		schema = createYupSchema(
-			currentContentTypeLayout,
-			{ components: entity.components || {} },
-			{ isCreatingEntry: entity.isCreatingEntry, isDraft: false, isFromComponent: false }
-		);
-	}
 
 	// Fetch RBAC permissions
 	const { isLoading: isLoadingPermissions, allowedActions } = useRBAC({
@@ -92,65 +71,34 @@ const Action = ({ mode, documentId, entitySlug }) => {
 
 	const handleOnSave = async () => {
 		setIsLoading(true);
-		try {
-			// Validate data with schema if `publish` mode
-			if (mode === 'publish' && schema) {
-				await schema.validate(entity.form.initialValues, { abortEarly: false });
+		// Create of update actie
+		if (!actionId) {
+			const { data: response } = await createAction({
+				mode,
+				entityId: documentId,
+				entitySlug,
+				executeAt,
+			});
+			if (response.data && response.data.id) {
+				setActionId(response.data.documentId);
 			}
-
-			// Create of update actie
-			if (!actionId) {
-				const { data: response } = await createAction({
-					mode,
-					entityId: documentId,
-					entitySlug,
-					executeAt,
-				});
-				if (response.data && response.data.id) {
-					setActionId(response.data.documentId);
-				}
-			} else {
-				await updateAction({ id: actionId, body: { executeAt } });
-			}
-
-			setIsCreating(false);
-			setIsEditing(true);
-		} catch (error) {
-			if (error instanceof ValidationError) {
-				toggleNotification({
-					type: 'warning',
-					message: formatMessage({
-						id: getTrad('action.notification.publish.validation.error'),
-						defaultMessage: 'Required fields must be saved before a publish date can be set',
-					})
-				});
-			}
-			console.error(error);
-		} finally {
-			setIsLoading(false);
+		} else {
+			await updateAction({ id: actionId, body: { executeAt } });
 		}
+
+		setIsCreating(false);
+		setIsEditing(true);
+		setIsLoading(false);
 	};
 
 	const handleOnDelete = async () => {
 		setIsLoading(true);
-		try {
-			await deleteAction({ id: actionId });
-			setActionId(0);
-			setExecuteAt(null);
-			setIsCreating(false);
-			setIsEditing(false);
-		} catch (error) {
-			toggleNotification({
-				type: 'warning',
-				message: formatMessage({
-					id: getTrad('action.notification.delete.action.error'),
-					defaultMessage: 'An error occurred while deleting the action.',
-				}),
-			});
-			console.error(error);
-		} finally {
-			setIsLoading(false);
-		}
+		await deleteAction({ id: actionId });
+		setActionId(0);
+		setExecuteAt(null);
+		setIsCreating(false);
+		setIsEditing(false);
+		setIsLoading(false);
 	};
 
 	// Render
