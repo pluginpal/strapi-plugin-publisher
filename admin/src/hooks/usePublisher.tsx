@@ -1,5 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useFetchClient, useNotification } from '@strapi/strapi/admin';
+import {
+	useFetchClient,
+	useNotification,
+	useForm,
+	useAPIErrorHandler,
+} from '@strapi/strapi/admin';
 import { useIntl } from 'react-intl';
 import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
@@ -8,6 +13,8 @@ const buildQueryKey = (args) => args.filter((a) => a);
 
 export const usePublisher = () => {
 	const { toggleNotification } = useNotification();
+	const setErrors = useForm('PublishAction', (state) => state.setErrors);
+	const { _unstableFormatValidationErrors: formatValidationErrors } = useAPIErrorHandler();
 	const { del, post, put, get } = useFetchClient();
 	const queryClient = useQueryClient();
 	const { formatMessage } = useIntl();
@@ -27,13 +34,19 @@ export const usePublisher = () => {
 		toggleNotification({
 			type: 'danger',
 			message:
-				error.response?.error?.message ||
+				error.response?.data?.error?.message ||
 				error.message ||
 				formatMessage({
 					id: 'notification.error',
 					defaultMessage: 'An unexpected error occurred',
 				}),
 		});
+
+		if (
+			error.response?.data?.error?.name === 'ValidationError'
+		) {
+			setErrors(formatValidationErrors(error.response?.data?.error));
+		}
 	}
 
 	function getAction(filters = {}) {
