@@ -1,7 +1,6 @@
 
 const validationMiddleware = async (context, next) => {
   const { uid, action, params } = context;
-	
   // Run this middleware only for the publisher action.
   if (uid !== 'plugin::publisher.action') {
     return next();
@@ -36,12 +35,30 @@ const validationMiddleware = async (context, next) => {
 		status: 'draft',
 	});
 
-	// Validate the draft before scheduling the publication.
-	if (draft) {
-		await strapi.entityValidator.validateEntityCreation(strapi.contentType(entitySlug), draft, {
-			isDraft: false,
-			locale: draft.locale,
-		});
+	if (!draft) {
+		throw new Error(`Draft not found for entityId ${entityId}`);
+	}
+
+	const published = await strapi.documents(entitySlug).findOne({
+		documentId: entityId,
+		status: 'published',
+	});
+
+	// Check if there is already a published version
+	if (published) {
+		await strapi.entityValidator.validateEntityUpdate(
+			strapi.contentType(entitySlug),
+			draft,
+			{ isDraft: false, locale: draft.locale },
+			published
+		);
+		// If there is no published version, validate as a new creation
+	} else {
+		await strapi.entityValidator.validateEntityCreation(
+			strapi.contentType(entitySlug),
+			draft,
+			{ isDraft: false, locale: draft.locale }
+		);
 	}
 
   return next();
