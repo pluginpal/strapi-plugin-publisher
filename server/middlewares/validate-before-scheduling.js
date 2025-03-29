@@ -1,3 +1,4 @@
+import { errors } from "@strapi/utils";
 
 const validationMiddleware = async (context, next) => {
   const { uid, action, params } = context;
@@ -35,31 +36,29 @@ const validationMiddleware = async (context, next) => {
 		status: 'draft',
 	});
 
+	// Throw an error if there is no document with the given documentId.
 	if (!draft) {
-		throw new Error(`Draft not found for entityId ${entityId}`);
+		throw new errors.NotFoundError(`No entity found with documentId ${entityId} for content type ${entitySlug}`);
 	}
 
+	// Fetch the published entity.
 	const published = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'published',
 	});
 
-	// Check if there is already a published version
-	if (published) {
-		await strapi.entityValidator.validateEntityUpdate(
-			strapi.contentType(entitySlug),
-			draft,
-			{ isDraft: false, locale: draft.locale },
-			published
-		);
-		// If there is no published version, validate as a new creation
-	} else {
-		await strapi.entityValidator.validateEntityCreation(
-			strapi.contentType(entitySlug),
-			draft,
-			{ isDraft: false, locale: draft.locale }
-		);
-	}
+	// Run the validations.
+	await strapi.entityValidator.validateEntityCreation(
+		strapi.contentType(entitySlug),
+		draft,
+		{
+			// We put isDraft to false to validate all required fields.
+			isDraft: false,
+			locale: draft.locale,
+		},
+		// Pass the published entity to prevent unique constraint errors.
+		published,
+	);
 
   return next();
 };
