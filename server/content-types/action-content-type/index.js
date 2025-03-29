@@ -21,15 +21,19 @@ export default {
 	attributes: {
 		executeAt: {
 			type: 'datetime',
+			required: true,
 		},
 		mode: {
 			type: 'string',
+			required: true,
 		},
 		entityId: {
 			type: 'string',
+			required: true,
 		},
 		entitySlug: {
 			type: 'string',
+			required: true,
 		},
 	},
 }
