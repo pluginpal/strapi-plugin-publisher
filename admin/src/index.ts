@@ -20,26 +20,31 @@ export default {
 		app.getPlugin('content-manager').injectComponent(
 			'editView',
 			'right-links',
-			{ name: 'action-manager', Component: ActionManager }
+			{ name: 'action-manager', Component: ActionManager },
 		);
 	},
-	
+
 	async registerTrads(app: any) {
 		const { locales } = app;
-		const importedTrads = [];
 
-		for (const locale of locales) {
-			try {
-				const data = await import(`./translations/${locale}.json`);
-				importedTrads.push({
-					data: prefixPluginTranslations(data, pluginId),
-					locale,
-				});
-			} catch (error) {
-				importedTrads.push({ data: {}, locale });
-			}
-		}
+		const importedTrads = await Promise.all(
+			(locales as any[]).map((locale) => {
+				return import(`./translations/${locale}.json`)
+					.then(({ default: data }) => {
+						return {
+							data: prefixPluginTranslations(data, pluginId),
+							locale,
+						};
+					})
+					.catch(() => {
+						return {
+							data: {},
+							locale,
+						};
+					});
+			}),
+		);
 
-		return importedTrads;
+		return Promise.resolve(importedTrads);
 	},
 };

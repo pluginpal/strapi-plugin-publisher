@@ -1,7 +1,7 @@
 import React from 'react';
 import { useIntl } from 'react-intl';
 import PropTypes from 'prop-types';
-import { Button, Flex } from '@strapi/design-system';
+import { Button } from '@strapi/design-system';
 import { Check, Cross, PaperPlane, Pencil, Trash } from '@strapi/icons';
 import { getTrad } from '../../../utils/getTrad';
 
@@ -56,6 +56,7 @@ const ActionButtons = ({
 				variant="success-light"
 				startIcon={<PaperPlane />}
 				onClick={handleSaveChange}
+				style={{ minHeight: 'auto' }}
 			>
 				{formatMessage({
 					id: getTrad(`action.footer.${mode}.button.save`),
@@ -71,7 +72,9 @@ const ActionButtons = ({
 			<Button onClick={handleEditChange}
 							fullWidth
 							variant="tertiary"
-							startIcon={<Pencil />}>
+							startIcon={<Pencil />}
+							style={{ minHeight: 'auto' }}
+			>
 				{formatMessage({
 					id: getTrad(`action.footer.${mode}.button.edit`),
 					defaultMessage: `Edit`,
@@ -80,7 +83,9 @@ const ActionButtons = ({
 			<Button onClick={handleDeleteChange}
 							fullWidth
 							variant="danger-light"
-							startIcon={<Trash />}>
+							startIcon={<Trash />}
+							style={{ minHeight: 'auto' }}
+			>
 				{formatMessage({
 					id: getTrad(`action.footer.${mode}.button.delete`),
 					defaultMessage: `Delete`,
@@ -97,6 +102,7 @@ const ActionButtons = ({
 			startIcon={mode === 'publish' ? <Check /> : <Cross />}
 			onClick={handleCreateChange}
 			disabled={!canPublish || isLoading}
+			style={{ minHeight: 'auto' }}
 		>
 			{formatMessage({
 				id: getTrad(`action.footer.${mode}.button.add`),
