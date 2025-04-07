@@ -24,20 +24,25 @@ export default {
 	},
 
 	async registerTrads({ locales }) {
-		const importedTrads = [];
+		const importedTrads = await Promise.all(
+			locales.map((locale) => {
+				console.log(locale, 'locale');
+				return import(`./translations/${locale}.json`)
+					.then(({ default: data }) => {
+						return {
+							data: prefixPluginTranslations(data, 'users-permissions'),
+							locale,
+						};
+					})
+					.catch(() => {
+						return {
+							data: {},
+							locale,
+						};
+					});
+			}),
+		);
 
-		for (const locale of locales) {
-			try {
-				const data = await import(`./translations/${locale}.json`);
-				importedTrads.push({
-					data: prefixPluginTranslations(data, pluginId),
-					locale,
-				});
-			} catch (error) {
-				importedTrads.push({ data: {}, locale });
-			}
-		}
-
-		return importedTrads;
+		return Promise.resolve(importedTrads);
 	},
 };

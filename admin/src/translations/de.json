@@ -1,0 +1,21 @@
+{
+    "action.header.publish.title": "Veröffentlichung",
+    "action.header.unpublish.title": "Ende der Veröffentlichung",
+    "action.footer.publish.button.add": "Veröffentlichung planen",
+    "action.footer.publish.button.edit": "Bearbeiten",
+    "action.footer.publish.button.delete": "Löschen",
+    "action.footer.publish.button.save": "Speichern",
+    "action.footer.unpublish.button.add": "Veröffentlichung beenden",
+    "action.footer.unpublish.button.edit": "Bearbeiten",
+    "action.footer.unpublish.button.delete": "Löschen",
+    "action.footer.unpublish.button.save": "Speichern",
+    "action.notification.delete.action.error": "Löschen fehlgeschlagen",
+    "action.notification.publish.create.success": "Veröffentlichung erfolgreich geplant",
+    "action.notification.publish.delete.success": "Veröffentlichung erfolgreich entfernt",
+    "action.notification.publish.update.success": "Veröffentlichung erfolgreich aktualisiert",
+    "action.notification.publish.validation.error": "Zum Planen der Veröffentlichung müssen alle Pflichtfelder gespeichert sein",
+    "action.notification.unpublish.create.success": "Veröffentlichungsende erfolgreich geplant",
+    "action.notification.unpublish.delete.success": "Veröffentlichungsende erfolgreich entfernt",
+    "action.notification.unpublish.update.success": "Veröffentlichungsende erfolgreich aktualisiert",
+    "plugin.name": "Publisher"
+}
