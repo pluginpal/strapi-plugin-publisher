@@ -34,6 +34,7 @@ const validationMiddleware = async (context, next) => {
 	const draft = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'draft',
+		populate: '*',
 	});
 
 	// Throw an error if there is no document with the given documentId.
@@ -45,6 +46,7 @@ const validationMiddleware = async (context, next) => {
 	const published = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'published',
+		populate: '*',
 	});
 
 	// Run the validations.

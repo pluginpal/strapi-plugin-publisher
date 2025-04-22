@@ -72,23 +72,27 @@ const Action = ({ mode, documentId, entitySlug }) => {
 	const handleOnSave = async () => {
 		setIsLoading(true);
 		// Create of update actie
-		if (!actionId) {
-			const { data: response } = await createAction({
-				mode,
-				entityId: documentId,
-				entitySlug,
-				executeAt,
-			});
-			if (response.data && response.data.id) {
-				setActionId(response.data.documentId);
+		try {
+			if (!actionId) {
+				const { data: response } = await createAction({
+					mode,
+					entityId: documentId,
+					entitySlug,
+					executeAt,
+				});
+				if (response.data && response.data.id) {
+					setActionId(response.data.documentId);
+				}
+			} else {
+				await updateAction({ id: actionId, body: { executeAt } });
 			}
-		} else {
-			await updateAction({ id: actionId, body: { executeAt } });
+			setIsCreating(false);
+			setIsEditing(true);
+			setIsLoading(false);
+		} catch (error) {
+			setIsLoading(false);
+			console.error('Error saving action:', error);
 		}
-
-		setIsCreating(false);
-		setIsEditing(true);
-		setIsLoading(false);
 	};
 
 	const handleOnDelete = async () => {
