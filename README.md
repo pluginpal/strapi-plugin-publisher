@@ -19,6 +19,7 @@ The installation requirements are the same as Strapi itself and can be found in 
 
 ## Installation
 
+For Strapi 4.x:
 ```sh
 npm install strapi-plugin-publisher
 ```
@@ -28,6 +29,19 @@ npm install strapi-plugin-publisher
 ```sh
 yarn add strapi-plugin-publisher
 ```
+
+For Strapi 5.x:
+
+```sh
+npm install strapi-plugin-publisher@2.0.0-beta.9
+```
+
+**or**
+
+```sh
+yarn add strapi-plugin-publisher@2.0.0-beta.9
+```
+
 
 ## Configuration
 
