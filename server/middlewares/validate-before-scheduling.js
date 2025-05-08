@@ -1,16 +1,16 @@
-import { errors } from "@strapi/utils";
+import { errors } from '@strapi/utils';
 
 const validationMiddleware = async (context, next) => {
-  const { uid, action, params } = context;
-  // Run this middleware only for the publisher action.
-  if (uid !== 'plugin::publisher.action') {
-    return next();
-  }
+	const { uid, action, params } = context;
+	// Run this middleware only for the publisher action.
+	if (uid !== 'plugin::publisher.action') {
+		return next();
+	}
 
-  // Run it only for the create and update actions.
-  if (action !== 'create' && action !== 'update') {
-    return next();
-  }
+	// Run it only for the create and update actions.
+	if (action !== 'create' && action !== 'update') {
+		return next();
+	}
 
 	// The create action will have the data directly.
 	let publisherAction = params.data;
@@ -23,46 +23,60 @@ const validationMiddleware = async (context, next) => {
 	}
 
 	// The complete, and possibly updated, publisher action.
-	const { entityId, entitySlug, mode } = { ...publisherAction, ...params.data };
+	const { entityId, entitySlug, mode, locale: actionLocale } = {
+		...publisherAction,
+		...params.data,
+	};
 
 	// Run it only for the publish mode.
 	if (mode !== 'publish') {
 		return next();
 	}
 
-	// Fetch the draft that will be published.
+	// Determine the final locale: use the provided locale first, otherwise fall back to the draft’s locale.
 	const draft = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'draft',
+		locale: actionLocale,
 		populate: '*',
 	});
 
-	// Throw an error if there is no document with the given documentId.
 	if (!draft) {
-		throw new errors.NotFoundError(`No entity found with documentId ${entityId} for content type ${entitySlug}`);
+		throw new errors.NotFoundError(
+			`No draft found for ${entitySlug} with documentId ${entityId}`
+		);
 	}
 
-	// Fetch the published entity.
+	// If no locale was provided in params.data, fill it in from the draft
+	const locale = actionLocale || draft.locale;
+
+	// Fetch the published entity in this same locale
 	const published = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'published',
+		locale,
 		populate: '*',
 	});
 
-	// Run the validations.
-	await strapi.entityValidator.validateEntityCreation(
-		strapi.contentType(entitySlug),
-		draft,
-		{
-			// We put isDraft to false to validate all required fields.
-			isDraft: false,
-			locale: draft.locale,
-		},
-		// Pass the published entity to prevent unique constraint errors.
-		published,
-	);
+	// Validate the draft before scheduling the publication.
+	if (published) {
+		// Existing record: validate as update
+		await strapi.entityValidator.validateEntityUpdate(
+			strapi.contentType(entitySlug),
+			draft,
+			{ isDraft: false, locale },
+			published
+		);
+	} else {
+		// New record: validate as creation
+		await strapi.entityValidator.validateEntityCreation(
+			strapi.contentType(entitySlug),
+			draft,
+			{ isDraft: false, locale }
+		);
+	}
 
-  return next();
+	return next();
 };
 
 export default validationMiddleware;

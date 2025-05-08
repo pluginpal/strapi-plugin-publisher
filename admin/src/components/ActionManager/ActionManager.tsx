@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import { Box, Typography, Divider } from '@strapi/design-system';
 import Action from '../Action';
@@ -17,6 +18,10 @@ const ActionManagerComponent = ({ document, entity }) => {
 	const { getSettings } = useSettings();
 	const { isLoading, data, isRefetching } = getSettings();
 
+	const location = useLocation();
+	const params = new URLSearchParams(location.search);
+	const currentLocale = params.get('plugins[i18n][locale]');
+
 	useEffect(() => {
 		if (!isLoading && !isRefetching) {
 			if (!data.contentTypes?.length || data.contentTypes?.find((uid) => uid === entity.slug)) {
@@ -28,6 +33,12 @@ const ActionManagerComponent = ({ document, entity }) => {
 	if (!showActions) {
 		return null;
 	}
+
+	const localizedEntry = [document, ...(document.localizations || [])].find(
+		(entry) => entry.locale === currentLocale
+	);
+
+	if (!localizedEntry) return null;
 
 	return (
 		<>
@@ -50,6 +61,7 @@ const ActionManagerComponent = ({ document, entity }) => {
 						key={mode + index}
 						documentId={document.documentId}
 						entitySlug={entity.model}
+						locale={localizedEntry.locale}
 					/>
 				</div>
 			))}

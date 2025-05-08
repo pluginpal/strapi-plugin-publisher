@@ -8,7 +8,7 @@ import ActionButtons from './ActionButtons/ActionButtons';
 import { usePublisher } from '../../hooks/usePublisher';
 import { Flex } from '@strapi/design-system';
 
-const Action = ({ mode, documentId, entitySlug }) => {
+const Action = ({ mode, documentId, entitySlug, locale }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
 	// State management
 	const [actionId, setActionId] = useState(0);
@@ -79,6 +79,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 					entityId: documentId,
 					entitySlug,
 					executeAt,
+					locale,
 				});
 				if (response.data && response.data.id) {
 					setActionId(response.data.documentId);
@@ -90,8 +91,8 @@ const Action = ({ mode, documentId, entitySlug }) => {
 			setIsEditing(true);
 			setIsLoading(false);
 		} catch (error) {
-			setIsLoading(false);
 			console.error('Error saving action:', error);
+			setIsLoading(false);
 		}
 	};
 
@@ -135,6 +136,7 @@ Action.propTypes = {
 	mode: PropTypes.string.isRequired,
 	documentId: PropTypes.string.isRequired,
 	entitySlug: PropTypes.string.isRequired,
+	locale: PropTypes.string,
 };
 
 export default Action;
