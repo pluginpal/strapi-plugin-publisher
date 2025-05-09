@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 const pluginConfigSchema = yup.object().shape({
+	defaultTimezone: yup.string().optional(),
 	actions: yup
 		.object()
 		.shape({
