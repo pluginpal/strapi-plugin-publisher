@@ -10,23 +10,30 @@ A plugin for [Strapi](https://github.com/strapi/strapi) that provides the abilit
 
 The installation requirements are the same as Strapi itself and can be found in the documentation on the [Quick Start](https://strapi.io/documentation/developer-docs/latest/getting-started/quick-start.html) page in the Prerequisites info card.
 
-### Supported Strapi versions
-
-- Strapi ^4.x.x (use `strapi-plugin-publisher@^1`)
-- Strapi ^5.2.x (use `strapi-plugin-publisher@^2`)
-
 **NOTE**: While this plugin may work with the older Strapi versions, they are not supported, it is always recommended to use the latest version of Strapi.
 
-## Installation
+## Installation for Strapi ^4.x.x
 
 ```sh
-npm install strapi-plugin-publisher
+npm install strapi-plugin-publisher@^1
 ```
 
 **or**
 
 ```sh
-yarn add strapi-plugin-publisher
+yarn add strapi-plugin-publisher@^1
+```
+
+## Installation for Strapi ^5.x.x
+
+```sh
+npm install strapi-plugin-publisher@^2
+```
+
+**or**
+
+```sh
+yarn add strapi-plugin-publisher@^2
 ```
 
 ## Configuration
