@@ -17,5 +17,7 @@
 	"action.notification.unpublish.create.success": "Unpublish action created successfully",
 	"action.notification.unpublish.delete.success": "Unpublish action deleted successfully",
 	"action.notification.unpublish.update.success": "Unpublish action updated successfully",
+	"action.header.publish.timezone.label": "Publish Timezone",
+	"action.header.unpublish.timezone.label": "Unpublish Timezone",
 	"plugin.name": "Publisher"
 }
