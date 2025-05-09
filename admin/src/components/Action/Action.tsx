@@ -6,10 +6,24 @@ import PropTypes from 'prop-types';
 import ActionTimePicker from './ActionDateTimePicker';
 import ActionButtons from './ActionButtons/ActionButtons';
 import { usePublisher } from '../../hooks/usePublisher';
-import { Flex } from '@strapi/design-system';
+import { Flex, Select, Option } from '@strapi/design-system';
+import { useSettings } from '../../hooks/useSettings';
+import { useIntl } from 'react-intl';
+import { getTrad } from '../../utils/getTrad';
 
 const Action = ({ mode, documentId, entitySlug }) => {
 	const { createAction, getAction, updateAction, deleteAction } = usePublisher();
+	const { formatMessage } = useIntl();
+	// 1) pull your default from the plugin config
+  const {
+    data: settings = {},
+    isLoading: settingsLoading,
+  } = useSettings().getSettings();
+  const defaultTz = settings.defaultTimezone || 'UTC';
+  // 2) state for per‑action timezone
+  const [timezone, setTimezone] = useState(defaultTz);
+  // full list of IANA zones
+  const [zones, setZones] = useState<string[]>([]);
 	// State management
 	const [actionId, setActionId] = useState(0);
 	const [isEditing, setIsEditing] = useState(false);
@@ -22,6 +36,14 @@ const Action = ({ mode, documentId, entitySlug }) => {
 	const { isLoading: isLoadingPermissions, allowedActions } = useRBAC({
 		publish: [{ action: 'plugin::content-manager.explorer.publish', subject: entitySlug }],
 	});
+	// 3) bootstrap IANA list once
+  useEffect(() => {
+    if (typeof Intl.supportedValuesOf === 'function') {
+      setZones(Intl.supportedValuesOf('timeZone'));
+    } else {
+      setZones([defaultTz]);
+    }
+  }, []);
 
 	useEffect(() => {
 		if (!isLoadingPermissions) {
@@ -47,6 +69,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 			if (data) {
 				setActionId(data.documentId);
 				setExecuteAt(data.executeAt);
+				setTimezone(data.timezone || defaultTz);
 				setIsEditing(true);
 			} else {
 				setActionId(0);
@@ -79,12 +102,13 @@ const Action = ({ mode, documentId, entitySlug }) => {
 					entityId: documentId,
 					entitySlug,
 					executeAt,
+					timezone,
 				});
 				if (response.data && response.data.id) {
 					setActionId(response.data.documentId);
 				}
 			} else {
-				await updateAction({ id: actionId, body: { executeAt } });
+				await updateAction({ id: actionId, body: { executeAt, timezone } });
 			}
 			setIsCreating(false);
 			setIsEditing(true);
@@ -100,6 +124,7 @@ const Action = ({ mode, documentId, entitySlug }) => {
 		await deleteAction({ id: actionId });
 		setActionId(0);
 		setExecuteAt(null);
+		setTimezone(defaultTz);
 		setIsCreating(false);
 		setIsEditing(false);
 		setIsLoading(false);
@@ -115,6 +140,22 @@ const Action = ({ mode, documentId, entitySlug }) => {
 				isEditing={isEditing}
 				mode={mode}
 			/>
+			<Select
+        label={formatMessage({
+          id: getTrad(`action.header.${mode}.timezone.label`),
+          defaultMessage: 'Timezone',
+        })}
+        name="timezone"
+        onChange={setTimezone}
+        value={timezone}
+        disabled={!isCreating}
+      >
+        {zones.map((tz) => (
+          <Option key={tz} value={tz}>
+            {tz}
+          </Option>
+        ))}
+      </Select>
 			<ActionButtons
 				mode={mode}
 				onEdit={handleOnEdit}
