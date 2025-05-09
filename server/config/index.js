@@ -3,6 +3,7 @@ import pluginConfigSchema from './schema';
 export default {
 	default: () => ({
 		enabled: true,
+		defaultTimezone: 'UTC',
 		actions: {
 			syncFrequency: '*/1 * * * *',
 		},
