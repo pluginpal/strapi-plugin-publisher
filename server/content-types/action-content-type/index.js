@@ -35,5 +35,8 @@ export default {
 			type: 'string',
 			required: true,
 		},
+		timezone: {
+			type: 'string',
+			required: true,
 	},
 }
