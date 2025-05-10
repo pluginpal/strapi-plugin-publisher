@@ -15,13 +15,13 @@ The installation requirements are the same as Strapi itself and can be found in 
 ## Installation for Strapi ^4.x.x
 
 ```sh
-npm install strapi-plugin-publisher@^1
+npm install strapi-plugin-publisher
 ```
 
 **or**
 
 ```sh
-yarn add strapi-plugin-publisher@^1
+yarn add strapi-plugin-publisher@beta
 ```
 
 ## Installation for Strapi ^5.x.x
