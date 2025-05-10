@@ -5,7 +5,10 @@ const registerCronTasks =  ({ strapi }) => {
 	// create cron check
 	strapi.cron.add({
 		publisherCronTask: {
-			options: settings.actions.syncFrequency,
+			options: {
+				rule: settings.actions.syncFrequency,
+				tz: settings.actions.defaultTimezone,
+			  },
 			task: async () => {
 				// fetch all actions that have passed
 				const records = await getPluginService('action').find({

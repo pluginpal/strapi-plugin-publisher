@@ -69,6 +69,7 @@ module.exports = ({ env }) => ({
 | Property                         | Description                                                                      | Type     | Default | Required |
 |----------------------------------|----------------------------------------------------------------------------------|----------| ------- | -------- |
 | actions                          | Settings associated with any actions.                                            | Object   | {} | No |
+| actions.defaultTimezone            | The default IANA timezone for publishing               | String   | 'UTC' | No |
 | actions.syncFrequency            | The frequency to check for actions to run. It is a cron expression               | String   | '*/1 * * * *' | No |
 | components                       | Settings associated with any of the plugins components                           | Object   | {} | No |
 | components.dateTimePicker        | Settings associated with the DateTimePicker component used to set action times   | Object   | {} | No |
