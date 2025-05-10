@@ -21,19 +21,19 @@ npm install strapi-plugin-publisher
 **or**
 
 ```sh
-yarn add strapi-plugin-publisher@beta
+yarn add strapi-plugin-publisher
 ```
 
 ## Installation for Strapi ^5.x.x
 
 ```sh
-npm install strapi-plugin-publisher@^2
+npm install strapi-plugin-publisher@beta
 ```
 
 **or**
 
 ```sh
-yarn add strapi-plugin-publisher@^2
+yarn add strapi-plugin-publisher@beta
 ```
 
 ## Configuration
