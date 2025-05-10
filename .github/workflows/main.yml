@@ -1,0 +1,38 @@
+name: Build & Attach Strapi Publisher Plugin
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-attach:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build the plugin
+        run: yarn build
+
+      - name: Package dist folder
+        run: |
+          zip -r publisher-plugin-dist.zip dist/
+
+      - name: Upload build to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: publisher-plugin-dist.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
