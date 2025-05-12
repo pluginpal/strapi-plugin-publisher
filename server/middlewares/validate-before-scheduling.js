@@ -59,22 +59,12 @@ const validationMiddleware = async (context, next) => {
 	});
 
 	// Validate the draft before scheduling the publication.
-	if (published) {
-		// Existing record: validate as update
-		await strapi.entityValidator.validateEntityUpdate(
-			strapi.contentType(entitySlug),
-			draft,
-			{ isDraft: false, locale },
-			published
-		);
-	} else {
-		// New record: validate as creation
-		await strapi.entityValidator.validateEntityCreation(
-			strapi.contentType(entitySlug),
-			draft,
-			{ isDraft: false, locale }
-		);
-	}
+	await strapi.entityValidator.validateEntityCreation(
+		strapi.contentType(entitySlug),
+		draft,
+		{ isDraft: false, locale },
+		published
+	);
 
 	return next();
 };
