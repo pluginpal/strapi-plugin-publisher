@@ -86,7 +86,7 @@ export const usePublisher = () => {
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${pluginId}.create.success`,
+					tradId: `action.notification.${data.mode}.create.success`,
 				},
 			});
 		},
@@ -110,7 +110,7 @@ export const usePublisher = () => {
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.${pluginId}.update.success`,
+					tradId: `action.notification.${data.mode}.update.success`,
 				},
 			});
 		},
@@ -121,7 +121,8 @@ export const usePublisher = () => {
 		mutationFn: function ({ id }) {
 			return del(`/${pluginId}/actions/${id}`);
 		},
-		onSuccess: () => {
+		onSuccess: (_response, actionMode) => {
+			const { mode } = actionMode;
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
@@ -130,7 +131,7 @@ export const usePublisher = () => {
 				queryKey,
 				notification: {
 					type: 'success',
-					tradId: `action.notification.delete.success`,
+					tradId: `action.notification.${mode}.delete.success`,
 				},
 			});
 		},
