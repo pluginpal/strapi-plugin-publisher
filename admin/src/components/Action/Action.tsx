@@ -98,7 +98,7 @@ const Action = ({ mode, documentId, entitySlug, locale }) => {
 
 	const handleOnDelete = async () => {
 		setIsLoading(true);
-		await deleteAction({ id: actionId });
+		await deleteAction({ id: actionId, mode: mode });
 		setActionId(0);
 		setExecuteAt(null);
 		setIsCreating(false);
