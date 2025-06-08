@@ -43,7 +43,7 @@ const validationMiddleware = async (context, next) => {
 
 	if (!draft) {
 		throw new errors.NotFoundError(
-			`No draft found for ${entitySlug} with documentId ${entityId}`
+			`No draft found for ${entitySlug} with documentId "${entityId}"${actionLocale ? ` and locale "${actionLocale}".` : '.'}`
 		);
 	}
 

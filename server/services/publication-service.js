@@ -1,5 +1,6 @@
 import getPluginService from '../utils/getPluginService';
 import getPluginEntityUid from '../utils/getEntityUId';
+import logMessage from '../utils/logMessage';
 
 const actionUId = getPluginEntityUid('action');
 export default ({ strapi }) => ({
@@ -13,13 +14,14 @@ export default ({ strapi }) => ({
 				documentId: entityId,
 				locale,
 			});
+      strapi.log.info(logMessage(`Successfully published document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
 			const { hooks } = getPluginService('settingsService').get();
 			// emit publish event
 			await hooks.beforePublish({ strapi, uid, entity: publishedEntity });
 			await getPluginService('emitService').publish(uid, publishedEntity);
 			await hooks.afterPublish({ strapi, uid, entity: publishedEntity });
 		} catch (error) {
-      strapi.log.error(`An error occurred when trying to publish document ${entityId} of type ${uid}: "${error}"`);
+      strapi.log.error(logMessage(`An error occurred when trying to publish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
 		}
 	},
 	/**
@@ -32,13 +34,14 @@ export default ({ strapi }) => ({
 				documentId: entityId,
 				locale,
 			});
+      strapi.log.info(logMessage(`Successfully unpublished document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
 			const { hooks } = getPluginService('settingsService').get();
 			// Emit events
 			await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
 			await getPluginService('emitService').unpublish(uid, unpublishedEntity);
 			await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
 		} catch (error) {
-      strapi.log.error(`An error occurred when trying to unpublish document ${entityId} of type ${uid}: "${error}"`);
+      strapi.log.error(logMessage(`An error occurred when trying to unpublish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
 		}
 	},
 	/**
