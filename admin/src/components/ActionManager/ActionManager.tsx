@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useIntl } from 'react-intl';
+import type { PanelComponent } from '@strapi/content-manager/strapi-admin';
 import { Box, Typography, Divider } from '@strapi/design-system';
 import Action from '../Action';
 import { getTrad } from '../../utils/getTrad';
@@ -9,10 +10,16 @@ import {
 	unstable_useDocument as useDocument,
 	unstable_useContentManagerContext as useContentManagerContext,
 } from '@strapi/strapi/admin';
+import { Modules } from '@strapi/strapi';
 
 const actionModes = ['publish', 'unpublish'];
 
-const ActionManagerComponent = ({ document, entity }) => {
+type Props = {
+	document: Modules.Documents.AnyDocument,
+	entity: ReturnType<typeof useContentManagerContext>,
+}
+
+const ActionManagerComponent = ({ document, entity }: Props) => {
 	const { formatMessage } = useIntl();
 	const [showActions, setShowActions] = useState(false);
 	const { getSettings } = useSettings();
@@ -42,18 +49,6 @@ const ActionManagerComponent = ({ document, entity }) => {
 
 	return (
 		<>
-			<Box marginTop={2} marginBottom={4}>
-				<Divider />
-			</Box>
-			<Typography variant="sigma" textColor="neutral600">
-				{formatMessage({
-					id: getTrad('plugin.name'),
-					defaultMessage: 'Publisher',
-				})}
-			</Typography>
-			<Box marginTop={2}>
-				<Divider />
-			</Box>
 			{actionModes.map((mode, index) => (
 				<div className="actionButton" key={index}>
 					<Action
@@ -76,7 +71,7 @@ const ActionManagerComponent = ({ document, entity }) => {
 	);
 };
 
-const ActionManager = () => {
+const ActionManager: PanelComponent = () => {
 	const entity = useContentManagerContext();
 	const { document } = useDocument({
 		documentId: entity?.id,
@@ -92,7 +87,10 @@ const ActionManager = () => {
 		return null;
 	}
 
-	return <ActionManagerComponent document={document} entity={entity} />;
+	return {
+		title: "Publisher",
+		content: <ActionManagerComponent document={document} entity={entity} />,
+	}
 };
 
 export default ActionManager;
