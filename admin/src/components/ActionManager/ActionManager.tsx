@@ -41,12 +41,6 @@ const ActionManagerComponent = ({ document, entity }: Props) => {
 		return null;
 	}
 
-	const localizedEntry = [document, ...(document.localizations || [])].find(
-		(entry) => entry.locale === currentLocale
-	);
-
-	if (!localizedEntry) return null;
-
 	return (
 		<>
 			{actionModes.map((mode, index) => (
