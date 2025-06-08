@@ -17,17 +17,14 @@ const actionModes = ['publish', 'unpublish'];
 type Props = {
 	document: Modules.Documents.AnyDocument,
 	entity: ReturnType<typeof useContentManagerContext>,
+	locale: string | null,
 }
 
-const ActionManagerComponent = ({ document, entity }: Props) => {
+const ActionManagerComponent = ({ document, entity, locale }: Props) => {
 	const { formatMessage } = useIntl();
 	const [showActions, setShowActions] = useState(false);
 	const { getSettings } = useSettings();
 	const { isLoading, data, isRefetching } = getSettings();
-
-	const location = useLocation();
-	const params = new URLSearchParams(location.search);
-	const currentLocale = params.get('plugins[i18n][locale]');
 
 	useEffect(() => {
 		if (!isLoading && !isRefetching) {
@@ -50,7 +47,7 @@ const ActionManagerComponent = ({ document, entity }: Props) => {
 						key={mode + index}
 						documentId={document.documentId}
 						entitySlug={entity.model}
-						locale={localizedEntry.locale}
+						locale={locale}
 					/>
 				</div>
 			))}
@@ -67,10 +64,17 @@ const ActionManagerComponent = ({ document, entity }: Props) => {
 
 const ActionManager: PanelComponent = () => {
 	const entity = useContentManagerContext();
+	const location = useLocation();
+	const params = new URLSearchParams(location.search);
+	const currentLocale = params.get('plugins[i18n][locale]');
+
 	const { document } = useDocument({
 		documentId: entity?.id,
 		model: entity?.model,
 		collectionType: entity?.collectionType,
+		params: {
+			locale: currentLocale,
+		}
 	});
 
 	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
@@ -83,7 +87,7 @@ const ActionManager: PanelComponent = () => {
 
 	return {
 		title: "Publisher",
-		content: <ActionManagerComponent document={document} entity={entity} />,
+		content: <ActionManagerComponent document={document} entity={entity} locale={currentLocale} />,
 	}
 };
 
