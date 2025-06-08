@@ -17,11 +17,7 @@ export default {
 	},
 
 	bootstrap(app: any) {
-		app.getPlugin('content-manager').injectComponent(
-			'editView',
-			'right-links',
-			{ name: 'action-manager', Component: ActionManager },
-		);
+		app.getPlugin('content-manager').apis.addEditViewSidePanel([ActionManager]);
 	},
 
 	async registerTrads(app: any) {

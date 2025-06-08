@@ -42,18 +42,6 @@ const ActionManagerComponent = ({ document, entity }) => {
 
 	return (
 		<>
-			<Box marginTop={2} marginBottom={4}>
-				<Divider />
-			</Box>
-			<Typography variant="sigma" textColor="neutral600">
-				{formatMessage({
-					id: getTrad('plugin.name'),
-					defaultMessage: 'Publisher',
-				})}
-			</Typography>
-			<Box marginTop={2}>
-				<Divider />
-			</Box>
 			{actionModes.map((mode, index) => (
 				<div className="actionButton" key={index}>
 					<Action
@@ -92,7 +80,10 @@ const ActionManager = () => {
 		return null;
 	}
 
-	return <ActionManagerComponent document={document} entity={entity} />;
+	return {
+		title: "Publisher",
+		content: <ActionManagerComponent document={document} entity={entity} />,
+	}
 };
 
 export default ActionManager;
