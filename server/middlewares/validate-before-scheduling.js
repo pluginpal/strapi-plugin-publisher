@@ -33,12 +33,15 @@ const validationMiddleware = async (context, next) => {
 		return next();
 	}
 
+	const populateBuilderService = strapi.plugin('content-manager').service('populate-builder');
+	const populate = await populateBuilderService(entitySlug).populateDeep(Infinity).build();
+
 	// Determine the final locale: use the provided locale first, otherwise fall back to the draft’s locale.
 	const draft = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'draft',
 		locale: actionLocale,
-		populate: '*',
+		populate,
 	});
 
 	if (!draft) {
@@ -55,7 +58,7 @@ const validationMiddleware = async (context, next) => {
 		documentId: entityId,
 		status: 'published',
 		locale,
-		populate: '*',
+		populate,
 	});
 
 	// Validate the draft before scheduling the publication.
