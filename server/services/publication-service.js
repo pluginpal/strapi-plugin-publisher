@@ -10,15 +10,19 @@ export default ({ strapi }) => ({
 	 */
 	async publish(uid, entityId, { locale }) {
 		try {
+			const { hooks } = getPluginService('settingsService').get();
+
+			await hooks.beforePublish({ strapi, uid, entity: publishedEntity });
+
 			const publishedEntity = await strapi.documents(uid).publish({
 				documentId: entityId,
 				locale,
 			});
-      strapi.log.info(logMessage(`Successfully published document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
-			const { hooks } = getPluginService('settingsService').get();
-			// emit publish event
-			await hooks.beforePublish({ strapi, uid, entity: publishedEntity });
+
 			await getPluginService('emitService').publish(uid, publishedEntity);
+
+      strapi.log.info(logMessage(`Successfully published document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
+
 			await hooks.afterPublish({ strapi, uid, entity: publishedEntity });
 		} catch (error) {
       strapi.log.error(logMessage(`An error occurred when trying to publish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
@@ -30,15 +34,19 @@ export default ({ strapi }) => ({
 	 */
 	async unpublish(uid, entityId, { locale }) {
 		try {
+			const { hooks } = getPluginService('settingsService').get();
+
+			await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
+
 			const unpublishedEntity = await strapi.documents(uid).unpublish({
 				documentId: entityId,
 				locale,
 			});
-      strapi.log.info(logMessage(`Successfully unpublished document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
-			const { hooks } = getPluginService('settingsService').get();
-			// Emit events
-			await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
+			
 			await getPluginService('emitService').unpublish(uid, unpublishedEntity);
+
+      strapi.log.info(logMessage(`Successfully unpublished document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
+			
 			await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
 		} catch (error) {
       strapi.log.error(logMessage(`An error occurred when trying to unpublish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
