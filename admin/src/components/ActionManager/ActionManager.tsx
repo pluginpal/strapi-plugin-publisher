@@ -21,74 +21,65 @@ type Props = {
 }
 
 const ActionManagerComponent = ({ document, entity, locale }: Props) => {
-	const { formatMessage } = useIntl();
-	const [showActions, setShowActions] = useState(false);
-	const { getSettings } = useSettings();
-	const { isLoading, data, isRefetching } = getSettings();
-
-	useEffect(() => {
-		if (!isLoading && !isRefetching) {
-			if (!data.contentTypes?.length || data.contentTypes?.find((uid) => uid === entity.slug)) {
-				setShowActions(true);
-			}
-		}
-	}, [isLoading, isRefetching]);
-
-	if (!showActions) {
-		return null;
-	}
-
-	return (
-		<>
-			{actionModes.map((mode, index) => (
-				<div className="actionButton" key={index}>
-					<Action
-						mode={mode}
-						key={mode + index}
-						documentId={document.documentId}
-						entitySlug={entity.model}
-						locale={locale}
-					/>
-				</div>
-			))}
-			<style>
-				{`
-					.actionButton {
-					    width: 100%;
-					}
-				`}
-			</style>
-		</>
-	);
+  return (
+    <>
+      {actionModes.map((mode, index) => (
+        <div className="actionButton" key={index}>
+          <Action
+            mode={mode}
+            key={mode + index}
+            documentId={document.documentId}
+            entitySlug={entity.model}
+            locale={locale}
+          />
+        </div>
+      ))}
+      <style>
+        {`
+          .actionButton {
+            width: 100%;
+          }
+        `}
+      </style>
+    </>
+  );
 };
 
 const ActionManager: PanelComponent = () => {
-	const entity = useContentManagerContext();
-	const location = useLocation();
-	const params = new URLSearchParams(location.search);
-	const currentLocale = params.get('plugins[i18n][locale]');
+  const entity = useContentManagerContext();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const currentLocale = params.get('plugins[i18n][locale]');
 
-	const { document } = useDocument({
-		documentId: entity?.id,
-		model: entity?.model,
-		collectionType: entity?.collectionType,
-		params: {
-			locale: currentLocale,
-		}
-	});
+  const { document } = useDocument({
+    documentId: entity?.id,
+    model: entity?.model,
+    collectionType: entity?.collectionType,
+    params: {
+      locale: currentLocale,
+    },
+  });
 
-	if (! entity.hasDraftAndPublish || entity.isCreatingEntry) {
-		return null;
-	}
+  const { getSettings } = useSettings();
+  const { isLoading, data, isRefetching } = getSettings();
 
-	if (! document || ! entity) {
-		return null;
-	}
+  if (!entity.hasDraftAndPublish || entity.isCreatingEntry) return null;
+  if (!document || !entity) return null;
 
-	return {
-		title: "Publisher",
-		content: <ActionManagerComponent document={document} entity={entity} locale={currentLocale} />,
-	}
+  const isEnabled =
+    !isLoading &&
+    !isRefetching &&
+    (
+      !data.contentTypes?.length ||
+      data.contentTypes?.includes(entity.slug)
+    );
+
+  if (!isEnabled) return null;
+
+  return {
+    title: "Publisher",
+    content: <ActionManagerComponent document={document} entity={entity} locale={currentLocale} />,
+  };
 };
 
 export default ActionManager;
