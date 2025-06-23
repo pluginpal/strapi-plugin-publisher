@@ -12,7 +12,10 @@ export default ({ strapi }) => ({
 		try {
 			const { hooks } = getPluginService('settingsService').get();
 
-			await hooks.beforePublish({ strapi, uid, entity: publishedEntity });
+			// Fetch the entity before publishing
+    	const entity = await strapi.entityService.findOne(uid, entityId, { locale });
+
+			await hooks.beforePublish({ strapi, uid, entity });
 
 			const publishedEntity = await strapi.documents(uid).publish({
 				documentId: entityId,
@@ -36,7 +39,10 @@ export default ({ strapi }) => ({
 		try {
 			const { hooks } = getPluginService('settingsService').get();
 
-			await hooks.beforeUnpublish({ strapi, uid, entity: unpublishedEntity });
+			// Fetch the entity before unpublishing
+			const entity = await strapi.entityService.findOne(uid, entityId, { locale });
+
+			await hooks.beforeUnpublish({ strapi, uid, entity });
 
 			const unpublishedEntity = await strapi.documents(uid).unpublish({
 				documentId: entityId,
