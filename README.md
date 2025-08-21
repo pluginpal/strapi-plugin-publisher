@@ -44,23 +44,62 @@ module.exports = ({ env }) => ({
 	'publisher': {
 		enabled: true,
 		config: {
-			hooks: {
-				beforePublish: async ({ strapi, uid, entity }) => {
-					console.log('beforePublish');
+				hooks: {
+					beforePublish: async ({ strapi, uid, entity }) => {
+						// Return false to prevent publish; any other value (or no return) allows it
+						console.log('beforePublish');
+						// return false
+					},
+					afterPublish: async ({ strapi, uid, entity }) => {
+						console.log('afterPublish');
+					},
+					beforeUnpublish: async ({ strapi, uid, entity }) => {
+						// Return false to prevent unpublish; any other value (or no return) allows it
+						console.log('beforeUnpublish');
+						// return false
+					},
+					afterUnpublish: async ({ strapi, uid, entity }) => {
+						console.log('afterUnpublish');
+					},
 				},
-				afterPublish: async ({ strapi, uid, entity }) => {
-					console.log('afterPublish');
-				},
-				beforeUnpublish: async ({ strapi, uid, entity }) => {
-					console.log('beforeUnpublish');
-				},
-				afterUnpublish: async ({ strapi, uid, entity }) => {
-					console.log('afterUnpublish');
-				},
-			},
 		},
 	},
 	// ..
+});
+```
+
+### TypeScript example (config/plugins.ts)
+
+If you are using a TypeScript Strapi app with ESM and a `config/plugins.ts` file, you can configure the plugin like this:
+
+```ts
+import type { Strapi } from '@strapi/strapi';
+
+export default ({ env }: { env: (key: string, def?: any) => any }) => ({
+  publisher: {
+    enabled: true,
+    config: {
+      hooks: {
+        beforePublish: async ({ strapi, uid, entity }: { strapi: Strapi; uid: string; entity: any }) => {
+          // Return false to prevent publish; any other value (or no return) allows it
+          console.log('beforePublish');
+          // return false
+        },
+        afterPublish: async ({ strapi, uid, entity }: { strapi: Strapi; uid: string; entity: any }) => {
+          console.log('afterPublish');
+          // Post-publish side effects
+        },
+        beforeUnpublish: async ({ strapi, uid, entity }: { strapi: Strapi; uid: string; entity: any }) => {
+          // Return false to prevent unpublish; any other value (or no return) allows it
+          console.log('beforeUnpublish');
+          // return false
+        },
+        afterUnpublish: async ({ strapi, uid, entity }: { strapi: Strapi; uid: string; entity: any }) => {
+          console.log('afterUnpublish');
+        },
+      },
+    },
+  },
 });
 ```
 
@@ -74,9 +113,9 @@ module.exports = ({ env }) => ({
 | components.dateTimePicker        | Settings associated with the DateTimePicker component used to set action times   | Object   | {} | No |
 | components.dateTimePicker.step   | The step between the numbers displayed for the time section of the DateTimePicker | Number   | 1 | No |
 | components.dateTimePicker.locale | Allows to enforce another locale to change the date layout                       | String   | browser locale | No |
-| hooks.beforePublish              | An async function that runs before a content type is published                   | Function | () => {} | No |
+| hooks.beforePublish              | An async function that runs before a content type is published. Return false to cancel publish.                   | Function | () => {} | No |
 | hooks.afterPublish               | An async function that runs after a content type is published                    | Function | () => {} | No |
-| hooks.beforeUnpublish            | An async function that runs before a content type is un-published                | Function | () => {} | No |
+| hooks.beforeUnpublish            | An async function that runs before a content type is un-published. Return false to cancel unpublish.                | Function | () => {} | No |
 | hooks.afterUnpublish             | An async function that runs after a content type is un-published                 | Function | () => {} | No |
 | contentTypes                     | A list of content type uids where the publish actions should be displayed        | Array<String> | All content types | No |
 
