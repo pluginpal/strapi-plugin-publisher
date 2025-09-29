@@ -85,12 +85,14 @@ export default ({ strapi }) => ({
 		const publishedEntity = await strapi.documents(record.entitySlug).findOne({
 			documentId: entityId,
 			status: 'published',
+			locale: record.locale
 		});
 
 		// Find the draft version of the entity
 		const draftEntity = await strapi.documents(record.entitySlug).findOne({
 			documentId: entityId,
 			status: 'draft',
+			locale: record.locale
 		});
 
 		// Determine the current state of the entity
