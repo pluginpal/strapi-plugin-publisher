@@ -61,9 +61,99 @@ const validationMiddleware = async (context, next) => {
 		populate,
 	});
 
-	// Validate the draft before scheduling the publication.
+	// -------------------------
+	// Extra validation for media and relations
+	// -------------------------
+	const isEmptyValue = (value, { multiple, repeatable }) => {
+		if (multiple || repeatable) {
+			return !Array.isArray(value) || value.length === 0;
+		}
+		return value === null || value === undefined;
+	};
+
+	const contentType = strapi.contentType(entitySlug);
+
+	// Recursively validate required relations
+	const validateRequiredRelations = (schema, dataNode, path = '') => {
+		const errs = [];
+		const attrs = schema.attributes || {};
+
+		for (const [name, attr] of Object.entries(attrs)) {
+			const currentPath = path ? `${path}.${name}` : name;
+			const value = dataNode ? dataNode[name] : undefined;
+
+			// media
+			if (attr.type === 'media') {
+				if (attr.required && isEmptyValue(value, { multiple: !!attr.multiple })) {
+					errs.push(`Field "${currentPath}" (media) is required`);
+				}
+				continue;
+			}
+
+			// relation
+			if (attr.type === 'relation') {
+				if (attr.required && isEmptyValue(value, { multiple: attr.relation === 'oneToMany' || attr.relation === 'manyToMany' || attr.relation === 'morphToMany' })) {
+					errs.push(`Field "${currentPath}" (relation) is required`);
+				}
+				continue;
+			}
+
+			// component
+			if (attr.type === 'component') {
+				if (attr.required && isEmptyValue(value, { repeatable: !!attr.repeatable })) {
+					errs.push(`Field "${currentPath}" (component${attr.repeatable ? '[]' : ''}) is required`);
+					continue;
+				}
+				// Recurse into component(s)
+				const componentSchema = strapi.components[attr.component];
+				if (attr.repeatable) {
+					if (Array.isArray(value)) {
+						value.forEach((item, idx) => {
+							errs.push(
+								...validateRequiredRelations(componentSchema, item, `${currentPath}[${idx}]`)
+							);
+						});
+					}
+				} else if (value) {
+					errs.push(
+						...validateRequiredRelations(componentSchema, value, currentPath)
+					);
+				}
+				continue;
+			}
+
+			// dynamic zone
+			if (attr.type === 'dynamiczone') {
+				if (attr.required && (!Array.isArray(value) || value.length === 0)) {
+					errs.push(`Field "${currentPath}" (dynamic zone) is required`);
+					continue;
+				}
+				if (Array.isArray(value)) {
+					value.forEach((dzItem, idx) => {
+						const compUid = dzItem && dzItem.__component;
+						if (!compUid) return;
+						const compSchema = strapi.components[compUid];
+						errs.push(
+							...validateRequiredRelations(compSchema, dzItem, `${currentPath}[${idx}]`)
+						);
+					});
+				}
+				continue;
+			}
+		}
+
+		return errs;
+	};
+
+	const relationErrors = validateRequiredRelations(contentType, draft);
+	if (relationErrors.length > 0) {
+		throw new errors.ValidationError(
+			`Cannot schedule publish: missing required relation/media fields.\n` +
+			relationErrors.map((e) => `- ${e}`).join('\n')
+		);
+	}
 	await strapi.entityValidator.validateEntityCreation(
-		strapi.contentType(entitySlug),
+		contentType,
 		draft,
 		{ isDraft: false, locale },
 		published
