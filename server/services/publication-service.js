@@ -4,11 +4,12 @@ import logMessage from '../utils/logMessage';
 
 const actionUId = getPluginEntityUid('action');
 export default ({ strapi }) => ({
+
 	/**
 	 * Publish a single record
 	 *
 	 */
-	async publish(uid, entityId, { locale }) {
+	async publish(uid, entityId, { locale, publishedAt }) {
 		try {
 			const { hooks } = getPluginService('settingsService').get();
 
@@ -25,10 +26,31 @@ export default ({ strapi }) => ({
 				return;
 			}
 
-			const publishedEntity = await strapi.documents(uid).publish({
+			let publishedEntity = await strapi.documents(uid).publish({
 				documentId: entityId,
 				locale,
 			});
+
+			// If a custom publishedAt is provided, update it directly via the database layer
+			if (publishedAt) {
+				// Get the internal ID of the published entry
+				const publishedRecord = publishedEntity.entries?.[0];
+
+				if (publishedRecord?.id) {
+					// Use db.query to directly update the publishedAt field in the database
+					await strapi.db.query(uid).update({
+						where: { id: publishedRecord.id },
+						data: { publishedAt },
+					});
+
+					// Fetch the updated entity to return the correct data
+					publishedEntity = await strapi.documents(uid).findOne({
+						documentId: entityId,
+						locale,
+						status: 'published',
+					});
+				}
+			}
 
 			await getPluginService('emitService').publish(uid, publishedEntity);
 
