@@ -4,7 +4,6 @@ import logMessage from '../utils/logMessage';
 
 const actionUId = getPluginEntityUid('action');
 export default ({ strapi }) => ({
-
 	/**
 	 * Publish a single record
 	 *
