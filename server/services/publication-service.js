@@ -8,7 +8,7 @@ export default ({ strapi }) => ({
 	 * Publish a single record
 	 *
 	 */
-	async publish(uid, entityId, { locale }) {
+	async publish(uid, entityId, { locale, publishedAt }) {
 		try {
 			const { hooks } = getPluginService('settingsService').get();
 
@@ -25,18 +25,39 @@ export default ({ strapi }) => ({
 				return;
 			}
 
-			const publishedEntity = await strapi.documents(uid).publish({
+			let publishedEntity = await strapi.documents(uid).publish({
 				documentId: entityId,
 				locale,
 			});
 
+			// If a custom publishedAt is provided, update it directly via the database layer
+			if (publishedAt) {
+				// Get the internal ID of the published entry
+				const publishedRecord = publishedEntity.entries?.[0];
+
+				if (publishedRecord?.id) {
+					// Use db.query to directly update the publishedAt field in the database
+					await strapi.db.query(uid).update({
+						where: { id: publishedRecord.id },
+						data: { publishedAt },
+					});
+
+					// Fetch the updated entity to return the correct data
+					publishedEntity = await strapi.documents(uid).findOne({
+						documentId: entityId,
+						locale,
+						status: 'published',
+					});
+				}
+			}
+
 			await getPluginService('emitService').publish(uid, publishedEntity);
 
-      strapi.log.info(logMessage(`Successfully published document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
+			strapi.log.info(logMessage(`Successfully published document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
 
 			await hooks.afterPublish({ strapi, uid, entity: publishedEntity });
 		} catch (error) {
-      strapi.log.error(logMessage(`An error occurred when trying to publish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
+			strapi.log.error(logMessage(`An error occurred when trying to publish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
 		}
 	},
 	/**
@@ -67,11 +88,11 @@ export default ({ strapi }) => ({
 
 			await getPluginService('emitService').unpublish(uid, unpublishedEntity);
 
-      strapi.log.info(logMessage(`Successfully unpublished document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
+			strapi.log.info(logMessage(`Successfully unpublished document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}".`));
 
 			await hooks.afterUnpublish({ strapi, uid, entity: unpublishedEntity });
 		} catch (error) {
-      strapi.log.error(logMessage(`An error occurred when trying to unpublish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
+			strapi.log.error(logMessage(`An error occurred when trying to unpublish document with id "${entityId}"${locale ? ` and locale "${locale}"` : ''} of type "${uid}": "${error}"`));
 		}
 	},
 	/**
@@ -85,14 +106,14 @@ export default ({ strapi }) => ({
 		const publishedEntity = await strapi.documents(record.entitySlug).findOne({
 			documentId: entityId,
 			status: 'published',
-			locale: record.locale
+			...(record.locale ? { locale: record.locale } : {}),
 		});
 
 		// Find the draft version of the entity
 		const draftEntity = await strapi.documents(record.entitySlug).findOne({
 			documentId: entityId,
 			status: 'draft',
-			locale: record.locale
+			...(record.locale ? { locale: record.locale } : {}),
 		});
 
 		// Determine the current state of the entity

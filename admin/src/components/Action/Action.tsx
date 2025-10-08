@@ -46,7 +46,8 @@ const Action = ({ mode, documentId, entitySlug, locale }) => {
 			setIsLoading(false);
 			if (data) {
 				setActionId(data.documentId);
-				setExecuteAt(data.executeAt);
+				// Convert UTC date from server to local Date object for DateTimePicker
+				setExecuteAt(data.executeAt ? new Date(data.executeAt) : null);
 				setIsEditing(true);
 			} else {
 				setActionId(0);
@@ -57,7 +58,6 @@ const Action = ({ mode, documentId, entitySlug, locale }) => {
 	// Handlers
 	function handleDateChange(date) {
 		setExecuteAt(date);
-		//setExecuteAt(date.toISOString());
 	}
 
 	const handleOnEdit = () => {
