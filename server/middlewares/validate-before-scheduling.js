@@ -3,17 +3,13 @@ import { errors } from '@strapi/utils';
 const validationMiddleware = async (context, next) => {
 	const { uid, action, params } = context;
 	// Run this middleware only for the publisher action.
-	if (uid !== 'plugin::publisher.action') {
-		return next();
-	}
+	if (uid !== 'plugin::publisher.action') return next();
 
 	// Run it only for the create and update actions.
-	if (action !== 'create' && action !== 'update') {
-		return next();
-	}
+	if (action !== 'create' && action !== 'update') return next();
 
 	// The create action will have the data directly.
-	let publisherAction = params.data;
+	let publisherAction = params?.data;
 
 	// The update action might have incomplete data, so we need to fetch it.
 	if (action === 'update') {
@@ -25,13 +21,11 @@ const validationMiddleware = async (context, next) => {
 	// The complete, and possibly updated, publisher action.
 	const { entityId, entitySlug, mode, locale: actionLocale } = {
 		...publisherAction,
-		...params.data,
+		...params?.data,
 	};
 
 	// Run it only for the publish mode.
-	if (mode !== 'publish') {
-		return next();
-	}
+	if (mode !== 'publish') return next();
 
 	const populateBuilderService = strapi.plugin('content-manager').service('populate-builder');
 	const populate = await populateBuilderService(entitySlug).populateDeep(Infinity).build();
@@ -46,14 +40,16 @@ const validationMiddleware = async (context, next) => {
 
 	if (!draft) {
 		throw new errors.NotFoundError(
-			`No draft found for ${entitySlug} with documentId "${entityId}"${actionLocale ? ` and locale "${actionLocale}".` : '.'}`
+			`No draft found for ${entitySlug} with documentId "${entityId}"${
+				actionLocale ? ` and locale "${actionLocale}".` : '.'
+			}`
 		);
 	}
 
-	// If no locale was provided in params.data, fill it in from the draft
+	// If no locale was provided in params.data, fill it in from the draft.
 	const locale = actionLocale || draft.locale;
 
-	// Fetch the published entity in this same locale
+	// Fetch the published entity in this same locale.
 	const published = await strapi.documents(entitySlug).findOne({
 		documentId: entityId,
 		status: 'published',
@@ -61,81 +57,71 @@ const validationMiddleware = async (context, next) => {
 		populate,
 	});
 
-	// -------------------------
-	// Extra validation for media and relations
-	// -------------------------
+	const model = strapi.contentType(entitySlug);
+
+	// ---------- helpers ----------
 	const isEmptyValue = (value, { multiple, repeatable }) => {
-		if (multiple || repeatable) {
-			return !Array.isArray(value) || value.length === 0;
-		}
+		if (multiple || repeatable) return !Array.isArray(value) || value.length === 0;
 		return value === null || value === undefined;
 	};
 
-	const contentType = strapi.contentType(entitySlug);
-
-	// Recursively validate required relations
-	const validateRequiredRelations = (schema, dataNode, path = '') => {
+	// Minimal custom check: only required media/relations + nested structure inside components/DZ.
+	const collectRequiredMissing = (schema, dataNode, pathArr = []) => {
 		const errs = [];
-		const attrs = schema.attributes || {};
+		const attrs = schema?.attributes || {};
 
 		for (const [name, attr] of Object.entries(attrs)) {
-			const currentPath = path ? `${path}.${name}` : name;
+			const nextPath = [...pathArr, name];
 			const value = dataNode ? dataNode[name] : undefined;
 
-			// media
+			// Media fields
 			if (attr.type === 'media') {
 				if (attr.required && isEmptyValue(value, { multiple: !!attr.multiple })) {
-					errs.push(`Field "${currentPath}" (media) is required`);
+					errs.push({ path: nextPath, message: 'This field is required' });
 				}
 				continue;
 			}
 
-			// relation
+			// Relations
 			if (attr.type === 'relation') {
-				if (attr.required && isEmptyValue(value, { multiple: attr.relation === 'oneToMany' || attr.relation === 'manyToMany' || attr.relation === 'morphToMany' })) {
-					errs.push(`Field "${currentPath}" (relation) is required`);
+				const many =
+					['oneToMany', 'manyToMany', 'morphToMany'].includes(attr.relation) ||
+					(typeof attr.relation === 'string' && attr.relation.toLowerCase().includes('many'));
+				if (attr.required && isEmptyValue(value, { multiple: many })) {
+					errs.push({ path: nextPath, message: 'This field is required' });
 				}
 				continue;
 			}
 
-			// component
+			// Components (repeatable or single)
 			if (attr.type === 'component') {
 				if (attr.required && isEmptyValue(value, { repeatable: !!attr.repeatable })) {
-					errs.push(`Field "${currentPath}" (component${attr.repeatable ? '[]' : ''}) is required`);
+					errs.push({ path: nextPath, message: 'This field is required' });
 					continue;
 				}
-				// Recurse into component(s)
-				const componentSchema = strapi.components[attr.component];
-				if (attr.repeatable) {
-					if (Array.isArray(value)) {
-						value.forEach((item, idx) => {
-							errs.push(
-								...validateRequiredRelations(componentSchema, item, `${currentPath}[${idx}]`)
-							);
-						});
-					}
+				const compSchema = strapi.components[attr.component];
+				if (attr.repeatable && Array.isArray(value)) {
+					value.forEach((item, idx) => {
+						errs.push(...collectRequiredMissing(compSchema, item, [...nextPath, idx]));
+					});
 				} else if (value) {
-					errs.push(
-						...validateRequiredRelations(componentSchema, value, currentPath)
-					);
+					errs.push(...collectRequiredMissing(compSchema, value, nextPath));
 				}
 				continue;
 			}
 
-			// dynamic zone
+			// Dynamic zones
 			if (attr.type === 'dynamiczone') {
 				if (attr.required && (!Array.isArray(value) || value.length === 0)) {
-					errs.push(`Field "${currentPath}" (dynamic zone) is required`);
+					errs.push({ path: nextPath, message: 'This field is required' });
 					continue;
 				}
 				if (Array.isArray(value)) {
 					value.forEach((dzItem, idx) => {
-						const compUid = dzItem && dzItem.__component;
+						const compUid = dzItem?.__component;
 						if (!compUid) return;
 						const compSchema = strapi.components[compUid];
-						errs.push(
-							...validateRequiredRelations(compSchema, dzItem, `${currentPath}[${idx}]`)
-						);
+						errs.push(...collectRequiredMissing(compSchema, dzItem, [...nextPath, idx]));
 					});
 				}
 				continue;
@@ -145,19 +131,45 @@ const validationMiddleware = async (context, next) => {
 		return errs;
 	};
 
-	const relationErrors = validateRequiredRelations(contentType, draft);
-	if (relationErrors.length > 0) {
+	// ---------- run core validator, normalize, and (optionally) add extras ----------
+	try {
+		await strapi.entityValidator.validateEntityCreation(
+			model,
+			draft,
+			{ isDraft: false, locale },
+			published
+		);
+	} catch (e) {
+		const name = e?.name || e?.constructor?.name;
+		const isValidationLike =
+			Array.isArray(e?.details?.errors) || /ValidationError/i.test(name || '');
+
+		if (isValidationLike) {
+			// Use core errors and supplement with missing media/relations if needed.
+			const core = (e.details?.errors || []).map((er) => ({
+				path: er.path || er.name || '',
+				message: er.message || 'This field is required',
+			}));
+			const extras = collectRequiredMissing(model, draft);
+			const merged = [...core, ...extras];
+
+			throw new errors.ValidationError(
+				'There are validation errors in your document. Please fix them so you can publish.',
+				{ errors: merged }
+			);
+		}
+
+		throw e;
+	}
+
+	// Enforce required media/relations even if core validator passed
+	const extrasAfterPass = collectRequiredMissing(model, draft);
+	if (extrasAfterPass.length > 0) {
 		throw new errors.ValidationError(
-			`Cannot schedule publish: missing required relation/media fields.\n` +
-			relationErrors.map((e) => `- ${e}`).join('\n')
+			'There are validation errors in your document. Please fix them so you can publish.',
+			{ errors: extrasAfterPass }
 		);
 	}
-	await strapi.entityValidator.validateEntityCreation(
-		contentType,
-		draft,
-		{ isDraft: false, locale },
-		published
-	);
 
 	return next();
 };
