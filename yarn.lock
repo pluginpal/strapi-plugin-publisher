@@ -3061,7 +3061,7 @@
     typescript "5.4.4"
     yup "0.32.9"
 
-"@strapi/strapi@^5.33.4":
+"@strapi/strapi@^5.34.0":
   version "5.34.0"
   resolved "https://registry.yarnpkg.com/@strapi/strapi/-/strapi-5.34.0.tgz#f4682689ad59ea9f97c4352c73a6c6ef20ad61a3"
   integrity sha512-/X8klEyVky0WDhp3+01yFz+Qhm9ZtoXAqIr2fxxPHi3QGw0BaYt2aDfwAxw0e3wO1EucfXHX5Hp7qabYu32QUw==
