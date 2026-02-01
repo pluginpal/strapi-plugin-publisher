@@ -47,14 +47,15 @@
         "lodash": "^4.17.21",
         "prop-types": "^15.8.1",
         "react-intl": "^6.6.2",
-        "react-query": "^3.39.3"
+        "react-query": "^3.39.3",
+        "yup": "^0.32.9"
     },
     "devDependencies": {
         "@babel/core": "^7.23.3",
         "@babel/eslint-parser": "^7.23.3",
         "@babel/preset-react": "^7.23.3",
         "@strapi/sdk-plugin": "^5.2.7",
-        "@strapi/strapi": "^5.2.0",
+        "@strapi/strapi": "^5.34.0",
         "eslint": "^8.53.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-node": "^11.1.0",
@@ -63,13 +64,14 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.0.0",
+        "strip-ansi": "^6.0.1",
         "styled-components": "^6.0.0"
     },
     "peerDependencies": {
-        "@strapi/design-system": "^2.0.0-rc.11",
-        "@strapi/icons": "^2.0.0-rc.11",
-        "@strapi/strapi": "^5.2.0",
-        "@strapi/utils": "^5.2.0",
+        "@strapi/design-system": "^2.1.2",
+        "@strapi/icons": "^2.1.2",
+        "@strapi/strapi": "^5.34.0",
+        "@strapi/utils": "^5.34.0",
         "react": "^17.0.0 || ^18.0.0",
         "react-router-dom": "^6.0.0",
         "styled-components": "^6.0.0"
