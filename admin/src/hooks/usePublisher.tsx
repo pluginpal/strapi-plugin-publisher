@@ -54,7 +54,7 @@ export const usePublisher = () => {
 			queryKey: buildQueryKey([
 				pluginId,
 				'entity-action',
-				filters.documentId,
+				filters.entityId,
 				filters.entitySlug,
 				filters.mode,
 			]),
@@ -78,7 +78,7 @@ export const usePublisher = () => {
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
-				data.documentId,
+				data.entityId,
 				data.entitySlug,
 				data.mode,
 			]);
@@ -102,7 +102,7 @@ export const usePublisher = () => {
 			const queryKey = buildQueryKey([
 				pluginId,
 				'entity-action',
-				data.documentId,
+				data.entityId,
 				data.entitySlug,
 				data.mode,
 			]);
