@@ -39,21 +39,36 @@ const Action = ({ mode, documentId, entitySlug, locale }) => {
 		entitySlug,
 	});
 
+	useEffect(() => {
+		setActionId(0);
+		setIsEditing(false);
+		setExecuteAt(null);
+		setIsCreating(false);
+		setIsLoading(true);
+	}, [documentId, entitySlug, locale, mode]);
+
 	// Update state based on fetched action data
 	useEffect(() => {
-		setIsLoading(true);
-		if (!isLoadingAction && !isRefetchingAction) {
-			setIsLoading(false);
-			if (data) {
-				setActionId(data.documentId);
-				// Convert UTC date from server to local Date object for DateTimePicker
-				setExecuteAt(data.executeAt ? new Date(data.executeAt) : null);
-				setIsEditing(true);
-			} else {
-				setActionId(0);
-			}
+		if (isLoadingAction || isRefetchingAction) {
+			setIsLoading(true);
+			return;
 		}
-	}, [isLoadingAction, isRefetchingAction]);
+
+		setIsLoading(false);
+
+		if (data) {
+			setActionId(data.documentId);
+			// Convert UTC date from server to local Date object for DateTimePicker
+			setExecuteAt(data.executeAt ? new Date(data.executeAt) : null);
+			setIsEditing(true);
+			setIsCreating(false);
+		} else {
+			setActionId(0);
+			setExecuteAt(null);
+			setIsEditing(false);
+			setIsCreating(false);
+		}
+	}, [data, isLoadingAction, isRefetchingAction]);
 
 	// Handlers
 	function handleDateChange(date) {

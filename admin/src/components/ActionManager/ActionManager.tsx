@@ -62,8 +62,9 @@ const ActionManager: PanelComponent = () => {
 		content: (
 			<>
 				{actionModes.map((mode) => (
-					<div key={mode} style={{ width: '100%'}}>
+					<div key={mode} style={{ width: '100%' }}>
 						<Action
+							key={[mode, entity.model, document.documentId, currentLocale || 'default'].join(':')}
 							mode={mode}
 							documentId={document.documentId}
 							entitySlug={entity.model}
