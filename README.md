@@ -123,6 +123,53 @@ export default ({ env }: { env: (key: string, def?: any) => any }) => ({
 
 The `cron.enabled` configuration option needs to be set to true in [Server Configuration](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/configurations/required/server.html#server-configuration) for the plugin to work.
 
+### Multi-instance / clustered deployments
+
+When Strapi runs on multiple containers or nodes (for example ECS, Kubernetes, or other redundant services), the same scheduled action may be executed more than once. 
+This behavior is discussed in [issue #194](https://github.com/pluginpal/strapi-plugin-publisher/issues/194).
+
+Common workarounds reported in that issue include:
+
+- use `beforePublish` and `beforeUnpublish` to allow only one instance to execute the action
+- use a shared lock such as Redis
+- use database row locking on the `actions` table
+
+Since `strapi-plugin-publisher@2.0.4`, returning `false` from `beforePublish` and `beforeUnpublish` cleanly aborts the action without throwing an error. This makes it possible to implement your own coordination logic in multi-instance deployments.
+
+```javascript
+module.exports = ({ env }) => ({
+  publisher: {
+    enabled: true,
+    config: {
+      hooks: {
+        beforePublish: async ({ strapi, uid, entity }) => {
+          const shouldRunOnThisInstance = env.bool('PLUGIN_PUBLISHER_ENABLED', false);
+
+          if (!shouldRunOnThisInstance) {
+            strapi.log.info(`Skipping publish for ${uid}:${entity.documentId} on this instance.`);
+            return false;
+          }
+
+          return true;
+        },
+        beforeUnpublish: async ({ strapi, uid, entity }) => {
+          const shouldRunOnThisInstance = env.bool('PLUGIN_PUBLISHER_ENABLED', false);
+
+          if (!shouldRunOnThisInstance) {
+            strapi.log.info(`Skipping unpublish for ${uid}:${entity.documentId} on this instance.`);
+            return false;
+          }
+
+          return true;
+        },
+      },
+    },
+  },
+});
+```
+
+For example, some teams use an environment variable to let only one instance proceed, while others use Redis locking or transactional row locking (`FOR UPDATE NOWAIT`) on the `actions` table. See [issue #194](https://github.com/pluginpal/strapi-plugin-publisher/issues/194) for additional background and implementation details.
+
 ## Usage
 
 Once the plugin has been installed, configured and enabled a `Publisher` section will be added to the `informations` section of the edit view for all content types (single + collection) that have `draftAndPublish` enabled. The `Publisher` section will provide the ability to schedule publishing and unpublishing of the content type. The content type publication status is checked every minute.
