@@ -23,3 +23,6 @@ npm-debug.log
 
 # assets
 assets
+
+# playground (local Strapi app for development)
+playground

@@ -8,7 +8,13 @@
         "format": "prettier --write **/*.{ts,js,json,yml}",
         "build": "strapi-plugin build",
         "watch": "strapi-plugin watch",
-        "watch:link": "strapi-plugin watch:link"
+        "watch:link": "strapi-plugin watch:link",
+        "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+        "develop": "yarn clean && concurrently --kill-others --names plugin,strapi,restart --prefix-colors blue,magenta,gray \"yarn:watch\" \"yarn:playground:develop\" \"yarn:playground:restart-on-build\"",
+        "playground:develop": "node playground/scripts/plugin-build.js wait && cd playground && strapi develop",
+        "playground:restart-on-build": "node playground/scripts/plugin-build.js watch",
+        "playground:strapi": "cd playground && strapi",
+        "playground:reset": "node -e \"require('fs').rmSync('playground/.tmp', { recursive: true, force: true })\""
     },
     "exports": {
         "./strapi-admin": {
@@ -56,6 +62,8 @@
         "@babel/preset-react": "^7.23.3",
         "@strapi/sdk-plugin": "^5.2.7",
         "@strapi/strapi": "^5.34.0",
+        "better-sqlite3": "^12.4.1",
+        "concurrently": "^8.2.2",
         "eslint": "^8.53.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-node": "^11.1.0",

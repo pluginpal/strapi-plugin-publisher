@@ -1,0 +1,24 @@
+{
+	"name": "strapi-plugin-publisher-playground",
+	"private": true,
+	"version": "0.0.0",
+	"description": "Local Strapi app used to develop and test strapi-plugin-publisher. Its dependencies are installed in the repository root, do not run `yarn install` in this folder.",
+	"scripts": {
+		"develop": "strapi develop",
+		"start": "strapi start",
+		"build": "strapi build",
+		"strapi": "strapi"
+	},
+	"dependencies": {
+		"@strapi/strapi": "^5.34.0",
+		"better-sqlite3": "^12.4.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.0.0",
+		"styled-components": "^6.0.0"
+	},
+	"strapi": {
+		"uuid": "strapi-plugin-publisher-playground",
+		"telemetryDisabled": true
+	}
+}
