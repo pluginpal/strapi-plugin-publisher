@@ -16932,7 +16932,7 @@ __metadata:
     react-intl: "npm:^6.8.9"
     react-query: "npm:^3.39.3"
     react-router-dom: "npm:^6.30.6"
-    strip-ansi: "npm:^6.0.1"
+    strip-ansi: "npm:^7.2.0"
     styled-components: "npm:^6.6.0"
     yup: "npm:^0.32.11"
   peerDependencies:
@@ -17123,7 +17123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"strip-ansi@npm:^7.1.2":
+"strip-ansi@npm:^7.1.2, strip-ansi@npm:^7.2.0":
   version: 7.2.0
   resolution: "strip-ansi@npm:7.2.0"
   dependencies:
