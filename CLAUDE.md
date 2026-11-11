@@ -8,17 +8,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-Use **yarn** (`yarn.lock`), Node 22 for development (`.nvmrc`, CI; `@strapi/sdk-plugin` 6 needs it). The published plugin still supports Node 20–24 (`engines`).
+Use **Yarn 4** (`.yarn/releases`, `nodeLinker: node-modules`; a global Yarn 1 delegates to it via `yarnPath`), Node 22 for development (`.nvmrc`, CI; `@strapi/sdk-plugin` 6 needs it). The published plugin still supports Node 20–24 (`engines`).
 
 - `yarn develop` — builds/watches the plugin and runs the playground Strapi app at http://localhost:1337/admin (login `admin@playground.test` / `Playground123!`)
 - `yarn build` — `strapi-plugin build` into `dist/` (this is what CI publishes)
 - `yarn watch` / `yarn watch:link` — watch build; `watch:link` publishes to Yalc for testing in an external Strapi project
-- `yarn lint` — `eslint . --fix` (it always auto-fixes; there is no separate `lint:fix` script despite CONTRIBUTING.md)
+- `yarn lint` — `eslint . --fix`; `yarn lint:check` lints without fixing (used by CI). `dist/` and generated playground files are in `.eslintignore`
 - `yarn format` — Prettier
 - `yarn playground:reset` — delete the playground SQLite DB (`playground/.tmp`)
 - `yarn playground:strapi <cmd>` — run any Strapi CLI command in the playground
+- `yarn verify` — `strapi-plugin verify`: checks the built package before publishing
+- `yarn consumer-test --dir <empty folder outside the repo> [--strapi minimum|current|<version>] [--clean] [--tarball <tgz>]` — packs the plugin, creates a fresh Strapi app with its own npm-installed `node_modules` (plugin from the tarball, playground config/content types, `npm install --before` = 7-day cooldown) and runs the smoke test against it; catches packaging, undeclared-dependency and Strapi-version issues the playground can't
+- `yarn playground:smoke [--skip-build] [--app <dir>]` — end-to-end smoke test (needs `yarn build`): builds the playground admin, starts it on port 1339 with its own DB (`playground/.tmp/smoke-test.db`) and admin, schedules publish/unpublish actions for Article and Homepage and asserts they run, are removed and call all four hooks
 
-There is no test suite. Verify changes by running the playground.
+There is no unit test suite. CI (`.github/workflows/ci.yml`) runs `yarn install --immutable`, lint, build, `verify`, `npm pack`, the playground smoke test and the consumer test (Node 20 + Strapi minimum, Node 24 + Strapi current) on every PR. The publish workflow uses `npm version`/`npm publish` (Yarn 4 has no `yarn publish`).
+
+## Dependency cooldown
+
+Only use dependency versions published at least 7 days ago. Yarn enforces this during resolution via `npmMinimalAgeGate: 7d` in `.yarnrc.yml` (also for transitive deps); it does not re-check entries already in `yarn.lock`. For urgent updates (e.g. security fixes), add the exact `name@version` to `npmPreapprovedPackages` in `.yarnrc.yml` with a comment explaining why, and remove it once the version is older than 7 days. Dependabot (`.github/dependabot.yml`) uses the same 7-day cooldown and ignores majors that must match the Strapi admin (react, react-dom, react-router-dom, react-intl, react-query, yup, styled-components) and ESLint/Babel majors (pending flat-config migration).
 
 ## Playground
 

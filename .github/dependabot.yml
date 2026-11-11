@@ -1,0 +1,50 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Supply-chain cooldown: only propose versions that have been public for 7 days.
+    # Yarn enforces the same rule for transitive dependencies (npmMinimalAgeGate in .yarnrc.yml).
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    groups:
+      strapi:
+        patterns:
+          - '@strapi/*'
+      babel:
+        patterns:
+          - '@babel/*'
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # These must stay on the same major as the Strapi admin, so the plugin shares
+      # its instances (React context, IntlProvider, react-query client, yup errors).
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-dom
+        update-types: [version-update:semver-major]
+      - dependency-name: react-router-dom
+        update-types: [version-update:semver-major]
+      - dependency-name: react-intl
+        update-types: [version-update:semver-major]
+      - dependency-name: react-query
+        update-types: [version-update:semver-major]
+      - dependency-name: yup
+        update-types: [version-update:semver-major]
+      - dependency-name: styled-components
+        update-types: [version-update:semver-major]
+      # ESLint 9+ and Babel 8 need a migration to the flat ESLint config first.
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: '@babel/*'
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

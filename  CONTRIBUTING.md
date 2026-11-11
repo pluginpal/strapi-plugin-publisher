@@ -24,6 +24,7 @@ Navigate into the project directory and install dependencies:
 ```bash
 cd strapi-plugin-publisher && yarn install
 ```
+The repository uses **Yarn 4**, which is committed in `.yarn/releases`. Any globally installed `yarn` (also Yarn 1) automatically switches to it, or run `corepack enable` once.
 This also installs everything the playground needs. Don't run `yarn install` inside the `playground` folder: the plugin and the playground have to share a single copy of Strapi and React.
 
 ### 4️⃣ Start the playground
@@ -49,6 +50,7 @@ The playground comes with an **Article** collection type and a **Homepage** sing
 | `yarn develop` | Build/watch the plugin and run the playground |
 | `yarn playground:reset` | Delete the playground database (`playground/.tmp`) to start fresh |
 | `yarn playground:strapi <command>` | Run any Strapi CLI command in the playground, e.g. `yarn playground:strapi console` |
+| `yarn playground:smoke` | Run the end-to-end smoke test (needs `yarn build` first, see below) |
 
 To change the port or the admin credentials, copy `playground/.env.example` to `playground/.env`. The admin credentials are only used when the database has no admin user yet, so run `yarn playground:reset` after changing them.
 
@@ -83,14 +85,41 @@ git commit -m "feat: add support for multiple publish schedules"
 
 ---
 
-## 🔍 Linting
-We use [ESLint](https://eslint.org/) to enforce coding standards.
+## 🔍 Checks
+Every pull request runs the [CI workflow](./.github/workflows/ci.yml). You can run the same checks locally:
 
-### 🛠 Useful Commands:
 | Command | Description |
 |---------|-------------|
-| `yarn lint` | Run ESLint to check for linting issues |
-| `yarn lint:fix` | Auto-fix ESLint issues |
+| `yarn lint:check` | Run ESLint without changing files (what CI runs) |
+| `yarn lint` | Run ESLint and auto-fix issues |
+| `yarn build` | Build the plugin into `dist/` |
+| `yarn verify` | Check the built package (`package.json` exports and files) before publishing |
+| `yarn playground:smoke` | Build the playground admin with the plugin, start it on port 1339 with a separate database, schedule publish/unpublish actions for a collection type and a single type, and check that they run and that all hooks are called. Add `--skip-build` to skip the admin build. Your own playground database is not touched. |
+
+### 📦 Consumer test
+The playground loads the plugin straight from this repository and shares its `node_modules`. To test the plugin the way users install it, run:
+```bash
+yarn consumer-test --dir ../plugin-test/strapi-publisher
+```
+This builds and packs the plugin with `npm pack`, creates a fresh Strapi app in that folder with the plugin installed from the tarball (its own `node_modules`, installed with npm), and runs the smoke test against it. It catches files missing from the npm package, dependencies the plugin uses but doesn't declare, and incompatibilities with other Strapi versions.
+
+- `--dir` must be an empty folder **outside** this repository (it is reused on the next run).
+- `--strapi minimum` tests the lowest Strapi version allowed by `peerDependencies`; `--strapi current` (default) the version in `devDependencies`. An exact version also works.
+- `--clean` also removes the app's `node_modules` for a fully fresh install.
+
+CI runs the consumer test for the minimum Strapi version on Node.js 20 and the current Strapi version on Node.js 24.
+
+### ⏳ Dependency cooldown
+To reduce the risk of installing a freshly published, compromised or broken release, Yarn only installs dependency versions that have been on the npm registry for **at least 7 days** (`npmMinimalAgeGate` in [`.yarnrc.yml`](./.yarnrc.yml)). This also applies to transitive dependencies, and it protects your own machine because the check happens during `yarn install`. [Dependabot](./.github/dependabot.yml) also waits 7 days before proposing an update.
+
+If `yarn add` or `yarn up` fails with `All versions satisfying "..." are quarantined`, the version is younger than 7 days: wait a few days, or pick an older version.
+
+**Urgent updates.** If a dependency update can't wait (for example a security fix that was released today), add the exact version to `npmPreapprovedPackages` in [`.yarnrc.yml`](./.yarnrc.yml), with a comment explaining why:
+```yaml
+npmPreapprovedPackages:
+  - "ws@8.22.2" # Fixes CVE-2026-1234, cannot wait 7 days
+```
+The exception only applies to that exact version and shows up in the pull request for review. Remove it once the version is older than 7 days.
 
 ---
 
@@ -99,7 +128,7 @@ We use [ESLint](https://eslint.org/) to enforce coding standards.
 
 ### 🔹 Guidelines:
 - Keep pull requests **small and focused on a single change**.
-- Ensure **ESLint passes** before submitting.
+- Ensure the **checks pass** (`yarn lint:check`, `yarn build` and `yarn playground:smoke`) before submitting.
 - If updating the UI, include **screenshots**.
 - Follow the **Pull Request Template** when submitting a PR.
 - **Discuss major API changes** with maintainers by opening an issue first.

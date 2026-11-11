@@ -10,3 +10,12 @@ dist
 npm-debug.log
 .idea
 yalc.lock
+
+# Yarn 4 (only the release and plugins are committed)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
