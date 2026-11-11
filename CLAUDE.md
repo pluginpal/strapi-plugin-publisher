@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-Use **yarn** (`yarn.lock`), Node 20 (`.nvmrc`; engines allow 20–24).
+Use **yarn** (`yarn.lock`), Node 22 for development (`.nvmrc`, CI; `@strapi/sdk-plugin` 6 needs it). The published plugin still supports Node 20–24 (`engines`).
 
 - `yarn develop` — builds/watches the plugin and runs the playground Strapi app at http://localhost:1337/admin (login `admin@playground.test` / `Playground123!`)
 - `yarn build` — `strapi-plugin build` into `dist/` (this is what CI publishes)

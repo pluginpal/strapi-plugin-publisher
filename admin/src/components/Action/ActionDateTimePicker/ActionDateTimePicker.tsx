@@ -5,8 +5,6 @@ import { DateTimePicker, Typography } from '@strapi/design-system';
 import { getTrad } from '../../../utils/getTrad';
 import { useSettings } from '../../../hooks/useSettings';
 
-import './ActionDateTimerPicker.css';
-
 const ActionDateTimePicker = ({ executeAt, mode, isCreating, isEditing, onChange }) => {
 	const { formatMessage, locale: browserLocale } = useIntl();
 	const [locale, setLocale] = useState(browserLocale);
