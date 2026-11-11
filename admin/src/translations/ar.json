@@ -1,0 +1,21 @@
+{
+	"action.header.publish.title": "تاريخ النشر",
+	"action.header.unpublish.title": "تاريخ إلغاء النشر",
+	"action.footer.publish.button.add": "تاريخ النشر",
+	"action.footer.publish.button.edit": "تعديل",
+	"action.footer.publish.button.delete": "حذف",
+	"action.footer.publish.button.save": "حفظ",
+	"action.footer.unpublish.button.add": "تاريخ إلغاء النشر",
+	"action.footer.unpublish.button.edit": "تعديل",
+	"action.footer.unpublish.button.delete": "حذف",
+	"action.footer.unpublish.button.save": "حفظ",
+	"action.notification.delete.action.error": "فشل حذف الإجراء",
+	"action.notification.publish.create.success": "تم إنشاء إجراء النشر بنجاح",
+	"action.notification.publish.delete.success": "تم حذف إجراء النشر بنجاح",
+	"action.notification.publish.update.success": "تم تحديث إجراء النشر بنجاح",
+	"action.notification.publish.validation.error": "يجب حفظ الحقول المطلوبة قبل تعيين تاريخ النشر",
+	"action.notification.unpublish.create.success": "تم إنشاء إجراء إلغاء النشر بنجاح",
+	"action.notification.unpublish.delete.success": "تم حذف إجراء إلغاء النشر بنجاح",
+	"action.notification.unpublish.update.success": "تم تحديث إجراء إلغاء النشر بنجاح",
+	"plugin.name": "الناشر"
+}

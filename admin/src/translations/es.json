@@ -1,0 +1,21 @@
+{
+	"action.header.publish.title": "fecha de publicación",
+	"action.header.unpublish.title": "fecha de despublicación",
+	"action.footer.publish.button.add": "Fecha de publicación",
+	"action.footer.publish.button.edit": "Editar",
+	"action.footer.publish.button.delete": "Eliminar",
+	"action.footer.publish.button.save": "Guardar",
+	"action.footer.unpublish.button.add": "Fecha de despublicación",
+	"action.footer.unpublish.button.edit": "Editar",
+	"action.footer.unpublish.button.delete": "Eliminar",
+	"action.footer.unpublish.button.save": "Guardar",
+	"action.notification.delete.action.error": "Error al eliminar la acción",
+	"action.notification.publish.create.success": "Acción de publicación creada correctamente",
+	"action.notification.publish.delete.success": "Acción de publicación eliminada correctamente",
+	"action.notification.publish.update.success": "Acción de publicación actualizada correctamente",
+	"action.notification.publish.validation.error": "Los campos obligatorios deben guardarse antes de poder establecer una fecha de publicación",
+	"action.notification.unpublish.create.success": "Acción de despublicación creada correctamente",
+	"action.notification.unpublish.delete.success": "Acción de despublicación eliminada correctamente",
+	"action.notification.unpublish.update.success": "Acción de despublicación actualizada correctamente",
+	"plugin.name": "Publicador"
+}

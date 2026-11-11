@@ -19,9 +19,9 @@ const Action = ({ mode, documentId, entitySlug, locale }) => {
 	const [canPublish, setCanPublish] = useState(true);
 
 	// Fetch RBAC permissions
-	const { isLoading: isLoadingPermissions, allowedActions } = useRBAC({
-		publish: [{ action: 'plugin::content-manager.explorer.publish', subject: entitySlug }],
-	});
+	const { isLoading: isLoadingPermissions, allowedActions } = useRBAC([
+		{ action: 'plugin::content-manager.explorer.publish', subject: entitySlug },
+	]);
 
 	useEffect(() => {
 		if (!isLoadingPermissions) {

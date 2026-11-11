@@ -1,0 +1,21 @@
+{
+	"action.header.publish.title": "yayınlanma tarihi",
+	"action.header.unpublish.title": "yayından kaldırma tarihi",
+	"action.footer.publish.button.add": "Yayınlanma tarihi",
+	"action.footer.publish.button.edit": "Düzenle",
+	"action.footer.publish.button.delete": "Sil",
+	"action.footer.publish.button.save": "Kaydet",
+	"action.footer.unpublish.button.add": "Yayından kaldırma tarihi",
+	"action.footer.unpublish.button.edit": "Düzenle",
+	"action.footer.unpublish.button.delete": "Sil",
+	"action.footer.unpublish.button.save": "Kaydet",
+	"action.notification.delete.action.error": "Eylem silinemedi",
+	"action.notification.publish.create.success": "Yayınlama eylemi başarıyla oluşturuldu",
+	"action.notification.publish.delete.success": "Yayınlama eylemi başarıyla silindi",
+	"action.notification.publish.update.success": "Yayınlama eylemi başarıyla güncellendi",
+	"action.notification.publish.validation.error": "Yayınlanma tarihi ayarlanmadan önce zorunlu alanlar kaydedilmelidir",
+	"action.notification.unpublish.create.success": "Yayından kaldırma eylemi başarıyla oluşturuldu",
+	"action.notification.unpublish.delete.success": "Yayından kaldırma eylemi başarıyla silindi",
+	"action.notification.unpublish.update.success": "Yayından kaldırma eylemi başarıyla güncellendi",
+	"plugin.name": "Yayıncı"
+}
