@@ -1,0 +1,16 @@
+# Strapi generated files
+.tmp
+.cache
+.strapi
+.strapi-updater.json
+build
+dist
+types/generated
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Local overrides
+.env
+
+# Dependencies live in the repository root
+node_modules

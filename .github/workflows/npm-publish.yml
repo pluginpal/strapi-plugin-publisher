@@ -14,11 +14,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           always-auth: true
-          node-version: 20
+          node-version: 22
           cache: 'yarn'
           registry-url: 'https://registry.npmjs.org/'
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Build the plugin
         run: yarn build
       - name: Get the release tag version
@@ -44,9 +44,9 @@ jobs:
           SOURCE_BRANCH=$(git branch -r --contains $RELEASE_COMMIT | grep -v HEAD | head -n 1 | sed 's/.*origin\///')
           echo "SOURCE_BRANCH=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
       - name: Set package version
-        run: yarn version --new-version "${{ steps.get_version.outputs.VERSION }}" --no-git-tag-version
+        run: npm version "${{ steps.get_version.outputs.VERSION }}" --no-git-tag-version
       - name: Publish package
-        run: yarn publish --access public --tag ${{ steps.extract_tag.outputs.NPM_TAG }}
+        run: npm publish --access public --tag ${{ steps.extract_tag.outputs.NPM_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Push version bump

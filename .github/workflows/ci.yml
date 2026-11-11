@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-build:
+    name: Lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Lint
+        run: yarn lint:check
+      - name: Build the plugin
+        run: yarn build
+      - name: Verify the plugin package
+        run: yarn verify
+      - name: Pack the plugin like it is published to npm
+        # npm pack does not create the destination folder itself.
+        run: |
+          mkdir -p "$RUNNER_TEMP/package"
+          npm pack --pack-destination "$RUNNER_TEMP/package"
+      - name: Upload the packed plugin
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin-package
+          path: ${{ runner.temp }}/package/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  smoke-test:
+    name: Playground smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Build the plugin
+        run: yarn build
+      - name: Build the playground and run the smoke test
+        run: yarn playground:smoke
+
+  consumer-test:
+    # Installs the packed plugin in a fresh Strapi app with its own node_modules, the way
+    # users install it, and runs the smoke test against it.
+    name: Consumer test (Node ${{ matrix.node }}, Strapi ${{ matrix.strapi }})
+    needs: lint-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test the edges of what we support: the oldest Strapi (lowest version allowed by
+        # peerDependencies) on the oldest Node.js, and the current Strapi (devDependencies)
+        # on the newest Node.js.
+        include:
+          - node: 20
+            strapi: minimum
+          - node: 24
+            strapi: current
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Download the packed plugin
+        uses: actions/download-artifact@v8
+        with:
+          name: plugin-package
+          path: ${{ runner.temp }}/package
+      # Plain Node.js scripts: the repository's own dependencies are not needed (or installed).
+      - name: Install the plugin in a fresh Strapi app and run the smoke test
+        run: |
+          node scripts/consumer-test.js \
+            --dir "$RUNNER_TEMP/consumer-app" \
+            --strapi ${{ matrix.strapi }} \
+            --tarball "$(ls "$RUNNER_TEMP"/package/*.tgz)"

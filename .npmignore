@@ -23,3 +23,18 @@ npm-debug.log
 
 # assets
 assets
+
+# playground (local Strapi app for development)
+playground
+
+# yarn
+.yarn
+.yarnrc.yml
+
+# tooling
+CLAUDE.md
+.eslintignore
+.nvmrc
+
+# repository scripts
+scripts

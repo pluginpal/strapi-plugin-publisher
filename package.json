@@ -5,10 +5,21 @@
     "description": "A plugin for Strapi Headless CMS that provides the ability to schedule publishing for any content type.",
     "scripts": {
         "lint": "eslint . --fix",
+        "lint:check": "eslint .",
         "format": "prettier --write **/*.{ts,js,json,yml}",
         "build": "strapi-plugin build",
+        "verify": "strapi-plugin verify",
         "watch": "strapi-plugin watch",
-        "watch:link": "strapi-plugin watch:link"
+        "watch:link": "strapi-plugin watch:link",
+        "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+        "develop": "yarn clean && concurrently --kill-others --names plugin,strapi,restart --prefix-colors blue,magenta,gray \"yarn:watch\" \"yarn:playground:develop\" \"yarn:playground:restart-on-build\"",
+        "playground:develop": "node playground/scripts/plugin-build.js wait && cd playground && strapi develop",
+        "playground:restart-on-build": "node playground/scripts/plugin-build.js watch",
+        "playground:strapi": "cd playground && strapi",
+        "playground:reset": "node -e \"require('fs').rmSync('playground/.tmp', { recursive: true, force: true })\"",
+        "check:lockfile-age": "node scripts/check-lockfile-age.js",
+        "playground:smoke": "node playground/scripts/smoke-test.js",
+        "consumer-test": "node scripts/consumer-test.js"
     },
     "exports": {
         "./strapi-admin": {
@@ -44,28 +55,33 @@
         "url": "https://github.com/PluginPal/strapi-plugin-publisher/issues"
     },
     "dependencies": {
-        "lodash": "^4.17.21",
+        "lodash": "^4.18.1",
         "prop-types": "^15.8.1",
-        "react-intl": "^6.6.2",
+        "react-intl": "^6.8.9",
         "react-query": "^3.39.3",
-        "yup": "^0.32.9"
+        "yup": "^0.32.11"
     },
     "devDependencies": {
-        "@babel/core": "^7.23.3",
-        "@babel/eslint-parser": "^7.23.3",
-        "@babel/preset-react": "^7.23.3",
-        "@strapi/sdk-plugin": "^5.2.7",
-        "@strapi/strapi": "^5.34.0",
-        "eslint": "^8.53.0",
-        "eslint-config-prettier": "^9.0.0",
+        "@babel/core": "^7.29.7",
+        "@babel/eslint-parser": "^7.29.9",
+        "@babel/preset-react": "^7.29.7",
+        "@strapi/design-system": "2.2.4",
+        "@strapi/icons": "2.2.4",
+        "@strapi/sdk-plugin": "^6.1.1",
+        "@strapi/strapi": "5.61.0",
+        "@strapi/utils": "5.61.0",
+        "better-sqlite3": "^13.0.3",
+        "concurrently": "^10.0.6",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-node": "^11.1.0",
-        "eslint-plugin-react": "^7.33.2",
-        "prettier": "^3.1.0",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-router-dom": "^6.0.0",
+        "eslint-plugin-react": "^7.37.5",
+        "prettier": "~3.9.10",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.30.6",
         "strip-ansi": "^6.0.1",
-        "styled-components": "^6.0.0"
+        "styled-components": "^6.6.0"
     },
     "peerDependencies": {
         "@strapi/design-system": "^2.1.2",
@@ -94,5 +110,6 @@
         "publishing",
         "schedule publish"
     ],
-    "license": "MIT"
+    "license": "MIT",
+    "packageManager": "yarn@4.18.1"
 }

@@ -1,0 +1,23 @@
+{
+	"kind": "singleType",
+	"collectionName": "homepages",
+	"info": {
+		"singularName": "homepage",
+		"pluralName": "homepages",
+		"displayName": "Homepage",
+		"description": "Single type for testing scheduled (un)publishing"
+	},
+	"options": {
+		"draftAndPublish": true
+	},
+	"pluginOptions": {},
+	"attributes": {
+		"title": {
+			"type": "string",
+			"required": true
+		},
+		"intro": {
+			"type": "text"
+		}
+	}
+}
