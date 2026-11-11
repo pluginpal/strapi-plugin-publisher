@@ -28,6 +28,8 @@ jobs:
         run: yarn install --immutable
       - name: Lint
         run: yarn lint:check
+      - name: Unit tests
+        run: yarn test
       - name: Build the plugin
         run: yarn build
       - name: Verify the plugin package

@@ -7,3 +7,4 @@ playground/.tmp
 playground/build
 playground/dist
 playground/types
+coverage

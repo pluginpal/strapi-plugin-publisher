@@ -28,7 +28,12 @@ const appArgIndex = process.argv.indexOf('--app');
 const appDir = appArgIndex > -1 ? path.resolve(process.argv[appArgIndex + 1]) : playgroundDir;
 const isPlayground = appDir === playgroundDir;
 // The playground uses the repository's node_modules; a separate app has its own.
-const strapiBin = path.join(isPlayground ? repoRoot : appDir, 'node_modules', '.bin', process.platform === 'win32' ? 'strapi.cmd' : 'strapi');
+const strapiBin = path.join(
+	isPlayground ? repoRoot : appDir,
+	'node_modules',
+	'.bin',
+	process.platform === 'win32' ? 'strapi.cmd' : 'strapi'
+);
 
 const PORT = Number(process.env.SMOKE_PORT || 1339);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
@@ -78,7 +83,9 @@ const waitFor = async (description, check, timeout = TIMEOUT_MS) => {
 		}
 		await sleep(1000);
 	}
-	throw new Error(`Timed out waiting for ${description}${lastError ? ` (${lastError.message})` : ''}`);
+	throw new Error(
+		`Timed out waiting for ${description}${lastError ? ` (${lastError.message})` : ''}`
+	);
 };
 
 let token;
@@ -106,19 +113,30 @@ const api = async (method, url, body) => {
 
 const scheduleAction = async (mode, entityId, entitySlug) => {
 	const executeAt = new Date(Date.now() + ACTION_DELAY_MS).toISOString();
-	const { data } = await api('POST', '/publisher/actions', { data: { mode, entityId, entitySlug, executeAt } });
-	assert(data?.documentId, `Creating a ${mode} action for ${entitySlug} did not return a documentId`);
+	const { data } = await api('POST', '/publisher/actions', {
+		data: { mode, entityId, entitySlug, executeAt },
+	});
+	assert(
+		data?.documentId,
+		`Creating a ${mode} action for ${entitySlug} did not return a documentId`
+	);
 	return data;
 };
 
 const getArticleStatus = async (documentId) => {
-	const { results } = await api('GET', `/content-manager/collection-types/${ARTICLE_UID}?pageSize=100`);
+	const { results } = await api(
+		'GET',
+		`/content-manager/collection-types/${ARTICLE_UID}?pageSize=100`
+	);
 	return results.find((article) => article.documentId === documentId)?.status;
 };
 
 const run = async (logs) => {
 	if (isPlayground) {
-		assert(fs.existsSync(path.join(repoRoot, 'dist', 'server', 'index.js')), 'The plugin is not built. Run `yarn build` first.');
+		assert(
+			fs.existsSync(path.join(repoRoot, 'dist', 'server', 'index.js')),
+			'The plugin is not built. Run `yarn build` first.'
+		);
 	}
 	assert(fs.existsSync(strapiBin), `Strapi is not installed in ${appDir}`);
 
@@ -132,7 +150,11 @@ const run = async (logs) => {
 	}
 
 	step(`Starting ${isPlayground ? 'the playground' : appDir} on ${BASE_URL}`);
-	const strapi = spawn(strapiBin, ['start'], { cwd: appDir, env, detached: process.platform !== 'win32' });
+	const strapi = spawn(strapiBin, ['start'], {
+		cwd: appDir,
+		env,
+		detached: process.platform !== 'win32',
+	});
 	strapi.stdout.on('data', (chunk) => logs.push(chunk.toString()));
 	strapi.stderr.on('data', (chunk) => logs.push(chunk.toString()));
 	let exited = false;
@@ -151,15 +173,22 @@ const run = async (logs) => {
 	};
 
 	try {
-		await waitFor('the health endpoint', async () => {
-			assert(!exited, 'Strapi exited during startup');
-			const response = await fetch(`${BASE_URL}/_health`);
-			return response.status === 204;
-		}, 120000);
+		await waitFor(
+			'the health endpoint',
+			async () => {
+				assert(!exited, 'Strapi exited during startup');
+				const response = await fetch(`${BASE_URL}/_health`);
+				return response.status === 204;
+			},
+			120000
+		);
 		ok('Health endpoint responds');
 
 		const admin = await fetch(`${BASE_URL}/admin`);
-		assert(admin.ok && (await admin.text()).includes('<script'), `GET /admin returned ${admin.status}`);
+		assert(
+			admin.ok && (await admin.text()).includes('<script'),
+			`GET /admin returned ${admin.status}`
+		);
 		ok('Admin panel is served');
 
 		step('Logging in and checking the plugin endpoints');
@@ -169,11 +198,17 @@ const run = async (logs) => {
 		ok(`Logged in as ${ADMIN.email}`);
 
 		const settings = await api('GET', '/publisher/settings');
-		assert(settings?.data?.components?.dateTimePicker, 'GET /publisher/settings did not return the plugin config');
+		assert(
+			settings?.data?.components?.dateTimePicker,
+			'GET /publisher/settings did not return the plugin config'
+		);
 		ok('Plugin settings endpoint works');
 
 		step('Scheduling publish actions for a collection type and a single type');
-		const { results: articles } = await api('GET', `/content-manager/collection-types/${ARTICLE_UID}`);
+		const { results: articles } = await api(
+			'GET',
+			`/content-manager/collection-types/${ARTICLE_UID}`
+		);
 		const article = articles.find((entry) => entry.status === 'draft');
 		assert(article, 'No draft article found to publish (the playground seed should create one)');
 
@@ -184,29 +219,85 @@ const run = async (logs) => {
 		const homepageAction = await scheduleAction('publish', homepage.documentId, HOMEPAGE_UID);
 		ok(`Scheduled article ${article.documentId} and homepage ${homepage.documentId}`);
 
-		await waitFor('the article to be published', async () => (await getArticleStatus(article.documentId)) === 'published');
+		await waitFor(
+			'the article to be published',
+			async () => (await getArticleStatus(article.documentId)) === 'published'
+		);
 		ok('Article was published on schedule');
 
 		await waitFor('the homepage to be published', async () => {
-			const { data } = await api('GET', `/content-manager/single-types/${HOMEPAGE_UID}?status=published`);
+			const { data } = await api(
+				'GET',
+				`/content-manager/single-types/${HOMEPAGE_UID}?status=published`
+			);
 			return Boolean(data?.publishedAt);
 		});
 		ok('Homepage (single type) was published on schedule');
 
 		const { data: remaining } = await api('GET', '/publisher/actions');
-		const leftOver = remaining.filter((action) => [articleAction.documentId, homepageAction.documentId].includes(action.documentId));
+		const leftOver = remaining.filter((action) =>
+			[articleAction.documentId, homepageAction.documentId].includes(action.documentId)
+		);
 		assert(leftOver.length === 0, 'Executed publish actions were not removed');
 		ok('Executed actions were removed');
 
 		step('Scheduling an unpublish action');
 		await scheduleAction('unpublish', article.documentId, ARTICLE_UID);
-		await waitFor('the article to be unpublished', async () => (await getArticleStatus(article.documentId)) === 'draft');
+		await waitFor(
+			'the article to be unpublished',
+			async () => (await getArticleStatus(article.documentId)) === 'draft'
+		);
 		ok('Article was unpublished on schedule');
+
+		step('Looking up actions per locale, like the admin side panel does');
+		// Every locale of a localized entry has its own actions. The locale is stored on the action
+		// itself, so this works without making the playground content types localized.
+		const executeAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+		const localeActions = {};
+		for (const locale of ['en', 'nl']) {
+			const { data } = await api('POST', '/publisher/actions', {
+				data: {
+					mode: 'unpublish',
+					entityId: article.documentId,
+					entitySlug: ARTICLE_UID,
+					executeAt,
+					locale,
+				},
+			});
+			localeActions[locale] = data.documentId;
+		}
+		// Same request as getAction() in admin/src/hooks/usePublisher.tsx (admin/src/utils/actionQuery.ts).
+		const findActions = async (locale) => {
+			const query = new URLSearchParams({
+				'filters[mode]': 'unpublish',
+				'filters[entityId]': article.documentId,
+				'filters[entitySlug]': ARTICLE_UID,
+				...(locale ? { locale } : {}),
+			});
+			const { data } = await api('GET', `/publisher/actions?${query}`);
+			return data.map((action) => action.documentId).sort();
+		};
+		for (const locale of ['en', 'nl']) {
+			const found = await findActions(locale);
+			assert(
+				JSON.stringify(found) === JSON.stringify([localeActions[locale]]),
+				`?locale=${locale} should only return the ${locale} action, got ${JSON.stringify(found)}`
+			);
+		}
+		assert(
+			(await findActions()).length === 2,
+			'Without a locale, the actions of all locales should be returned'
+		);
+		for (const documentId of Object.values(localeActions)) {
+			await api('DELETE', `/publisher/actions/${documentId}`);
+		}
+		ok('Each locale gets its own action');
 
 		step('Checking that the publisher hooks ran');
 		// afterUnpublish runs just after the status change, so give the log line a moment to arrive.
 		const hooks = ['beforePublish', 'afterPublish', 'beforeUnpublish', 'afterUnpublish'];
-		const missingHooks = () => hooks.filter((hook) => !logs.join('').includes(`[playground] ${hook}`));
+		const missingHooks = () =>
+			hooks.filter((hook) => !logs.join('').includes(`[playground] ${hook}`));
 		try {
 			await waitFor('the publisher hooks to log', () => missingHooks().length === 0, 10000);
 		} catch {

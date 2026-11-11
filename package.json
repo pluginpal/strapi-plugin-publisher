@@ -9,6 +9,9 @@
         "format": "prettier --write **/*.{ts,js,json,yml}",
         "build": "strapi-plugin build",
         "verify": "strapi-plugin verify",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
         "watch": "strapi-plugin watch",
         "watch:link": "strapi-plugin watch:link",
         "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -17,7 +20,6 @@
         "playground:restart-on-build": "node playground/scripts/plugin-build.js watch",
         "playground:strapi": "cd playground && strapi",
         "playground:reset": "node -e \"require('fs').rmSync('playground/.tmp', { recursive: true, force: true })\"",
-        "check:lockfile-age": "node scripts/check-lockfile-age.js",
         "playground:smoke": "node playground/scripts/smoke-test.js",
         "consumer-test": "node scripts/consumer-test.js"
     },
@@ -70,6 +72,7 @@
         "@strapi/sdk-plugin": "^6.1.1",
         "@strapi/strapi": "5.61.0",
         "@strapi/utils": "5.61.0",
+        "@vitest/coverage-v8": "5.1.0",
         "better-sqlite3": "^13.0.3",
         "concurrently": "^10.0.6",
         "eslint": "^8.57.1",
@@ -80,8 +83,10 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-router-dom": "^6.30.6",
-        "strip-ansi": "^7.2.0",
-        "styled-components": "^6.6.0"
+				"strip-ansi": "^7.2.0",
+				"styled-components": "^6.6.0",
+        "vite": "6.4.5",
+        "vitest": "5.1.0"
     },
     "peerDependencies": {
         "@strapi/design-system": "^2.1.2",

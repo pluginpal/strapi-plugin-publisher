@@ -38,3 +38,8 @@ CLAUDE.md
 
 # repository scripts
 scripts
+
+# unit tests
+tests
+vitest.config.mjs
+coverage
