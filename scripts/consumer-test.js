@@ -9,7 +9,7 @@
  *   2. creates a fresh Strapi app in --dir (same config, content types and seed as the
  *      playground) that installs the plugin from that tarball with its own node_modules;
  *   3. installs the app with npm, only using versions published at least COOLDOWN_DAYS ago;
- *   4. runs playground/scripts/smoke-test.js against that app.
+ *   4. runs the smoke test (playground/scripts/smoke-test) against that app.
  *
  * That catches files missing from the npm package, dependencies the plugin uses but doesn't
  * declare, and incompatibilities with other Strapi or Node.js versions.
@@ -188,7 +188,7 @@ const main = () => {
 	installApp();
 
 	step('Running the smoke test against the app');
-	const smoke = spawnSync(process.execPath, [path.join(playgroundDir, 'scripts', 'smoke-test.js'), '--app', appDir], {
+	const smoke = spawnSync(process.execPath, ['--test-reporter=spec', path.join(playgroundDir, 'scripts', 'smoke-test'), '--app', appDir], {
 		stdio: 'inherit',
 	});
 	process.exit(smoke.status ?? 1);

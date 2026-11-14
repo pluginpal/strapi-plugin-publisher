@@ -1,0 +1,23 @@
+{
+	"collectionName": "components_blocks_call_to_actions",
+	"info": {
+		"displayName": "Call to action",
+		"icon": "cursor"
+	},
+	"options": {},
+	"attributes": {
+		"title": {
+			"type": "string",
+			"required": true
+		},
+		"text": {
+			"type": "text"
+		},
+		"links": {
+			"type": "component",
+			"component": "shared.link",
+			"repeatable": true,
+			"min": 1
+		}
+	}
+}
