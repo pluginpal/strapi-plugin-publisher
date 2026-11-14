@@ -35,5 +35,9 @@ export default {
 			type: 'string',
 			required: true,
 		},
+		locale: {
+			type: 'string',
+			required: false,
+		},
 	},
 }
