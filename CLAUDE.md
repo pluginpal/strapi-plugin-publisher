@@ -29,7 +29,7 @@ Only use dependency versions published at least 7 days ago. Yarn enforces this d
 
 ## Playground
 
-`playground/` is a minimal Strapi app (Article collection type + Homepage single type, both draft & publish, seeded with drafts and an auto-created super admin in `playground/src/index.js`).
+`playground/` is a minimal Strapi app (Article collection type + Homepage single type, both draft & publish, seeded with drafts and an auto-created super admin in `playground/src/index.js`). Article has a **required** manyToOne `author` relation to the Author collection type (no draft & publish); keep it required, it is the regression coverage for scheduling entries with a filled required to-one relation.
 
 - Its dependencies live in the **root** `package.json`; never run `yarn install` inside `playground/` (plugin and app must share one copy of Strapi/React).
 - `playground/config/plugins.js` loads the plugin via `resolve:` an absolute path to the repo root, so Strapi uses the root `exports` → **`dist/`**, not the source. Changes only take effect after `strapi-plugin watch` rebuilds.

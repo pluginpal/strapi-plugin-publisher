@@ -34,13 +34,26 @@ const ensureAdminUser = async (strapi) => {
 
 /**
  * Seed a few drafts so there is something to schedule.
+ * Articles have a required manyToOne `author` relation (regression coverage for scheduling
+ * entries whose required to-one relation is filled).
  */
 const seedContent = async (strapi) => {
+	const authors = strapi.documents('api::author.author');
+	if ((await authors.count()) === 0) {
+		await authors.create({ data: { name: 'Ada Writer', email: 'ada@playground.test' } });
+		strapi.log.info('[playground] Seeded author');
+	}
+	const [author] = await authors.findMany({ sort: 'name' });
+
 	const articles = strapi.documents('api::article.article');
 	if ((await articles.count({ status: 'draft' })) === 0) {
 		for (const title of ['First playground article', 'Second playground article']) {
 			await articles.create({
-				data: { title, content: `Content of "${title}".` },
+				data: {
+					title,
+					content: `Content of "${title}".`,
+					author: { connect: [{ documentId: author.documentId }] },
+				},
 			});
 		}
 		strapi.log.info('[playground] Seeded draft articles');

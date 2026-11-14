@@ -1,0 +1,32 @@
+{
+	"kind": "collectionType",
+	"collectionName": "authors",
+	"info": {
+		"singularName": "author",
+		"pluralName": "authors",
+		"displayName": "Author",
+		"description": "Related to articles; without draft & publish"
+	},
+	"options": {
+		"draftAndPublish": false
+	},
+	"pluginOptions": {},
+	"attributes": {
+		"name": {
+			"type": "string",
+			"required": true
+		},
+		"email": {
+			"type": "email"
+		},
+		"bio": {
+			"type": "text"
+		},
+		"articles": {
+			"type": "relation",
+			"relation": "oneToMany",
+			"target": "api::article.article",
+			"mappedBy": "author"
+		}
+	}
+}
