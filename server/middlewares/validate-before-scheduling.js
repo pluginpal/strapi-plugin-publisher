@@ -1,4 +1,8 @@
-import { errors } from '@strapi/utils';
+import { errors, relations } from '@strapi/utils';
+
+// Polymorphic relations that hold an array
+// (`relations.isAnyToMany` only covers oneToMany/manyToMany).
+const MORPH_TO_MANY = ['morphMany', 'morphToMany'];
 
 const validationMiddleware = async (context, next) => {
 	const { uid, action, params } = context;
@@ -84,9 +88,9 @@ const validationMiddleware = async (context, next) => {
 
 			// Relations
 			if (attr.type === 'relation') {
-				const many =
-					['oneToMany', 'manyToMany', 'morphToMany'].includes(attr.relation) ||
-					(typeof attr.relation === 'string' && attr.relation.toLowerCase().includes('many'));
+				// Only "to many" relations hold an array; manyToOne/oneToOne/morphOne/morphToOne
+				// hold a single object (or null).
+				const many = relations.isAnyToMany(attr) || MORPH_TO_MANY.includes(attr.relation);
 				if (attr.required && isEmptyValue(value, { multiple: many })) {
 					errs.push({ path: nextPath, message: 'This field is required' });
 				}
