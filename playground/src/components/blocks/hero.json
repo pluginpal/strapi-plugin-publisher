@@ -1,0 +1,28 @@
+{
+	"collectionName": "components_blocks_heroes",
+	"info": {
+		"displayName": "Hero",
+		"description": "Large heading with an optional image and call to action",
+		"icon": "landscape"
+	},
+	"options": {},
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"required": true
+		},
+		"subheading": {
+			"type": "text"
+		},
+		"image": {
+			"type": "media",
+			"multiple": false,
+			"allowedTypes": ["images"]
+		},
+		"callToAction": {
+			"type": "component",
+			"component": "shared.link",
+			"repeatable": false
+		}
+	}
+}

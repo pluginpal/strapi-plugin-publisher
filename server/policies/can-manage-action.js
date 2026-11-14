@@ -34,12 +34,15 @@ export default async (policyContext) => {
 		return true;
 	}
 
-	// The user must be allowed to publish the current target as well as the updated one.
+	// The user must be allowed to publish the current target as well as the updated one. A field
+	// sent in the body replaces the stored value, even when it's null (e.g. `locale: null` makes the
+	// action run in the default locale), so `??` can't be used here.
+	const updated = (field) => (Object.hasOwn(data, field) ? data[field] : action[field]);
 	await permissionService.assertCanSchedule(userAbility, action);
 	await permissionService.assertCanSchedule(userAbility, {
-		entitySlug: data.entitySlug ?? action.entitySlug,
-		entityId: data.entityId ?? action.entityId,
-		locale: data.locale ?? action.locale,
+		entitySlug: updated('entitySlug'),
+		entityId: updated('entityId'),
+		locale: updated('locale'),
 	});
 	return true;
 };

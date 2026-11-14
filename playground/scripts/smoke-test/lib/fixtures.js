@@ -27,9 +27,15 @@ const getArticles = async () => {
 	return results;
 };
 
+// A complete article from the playground seed (the seed also has an "Incomplete article" that
+// can't be scheduled for publishing because required fields are missing).
+const ARTICLE_TITLE = 'Scheduling publish dates in Strapi';
+
 const getDraftArticle = async () => {
-	const article = (await getArticles()).find((entry) => entry.status === 'draft');
-	assert.ok(article, 'No draft article found (the playground seed should create one)');
+	const article = (await getArticles()).find(
+		(entry) => entry.title === ARTICLE_TITLE && entry.status === 'draft'
+	);
+	assert.ok(article, `No draft article "${ARTICLE_TITLE}" found (the playground seed creates it)`);
 	return article;
 };
 
@@ -55,7 +61,7 @@ const createArticleUser = async ({ email, password }, roleName, actions) => {
 		permissions: actions.map((action) => ({
 			action: `plugin::content-manager.explorer.${action}`,
 			subject: ARTICLE_UID,
-			properties: action === 'publish' ? {} : { fields: ['title', 'content'] },
+			properties: action === 'publish' ? {} : { fields: ['title', 'excerpt'] },
 			conditions: [],
 		})),
 	});

@@ -29,7 +29,13 @@ Only use dependency versions published at least 7 days ago. Yarn enforces this d
 
 ## Playground
 
-`playground/` is a minimal Strapi app (Article collection type + Homepage single type, both draft & publish, seeded with drafts and an auto-created super admin in `playground/src/index.js`). Article has a **required** manyToOne `author` relation to the Author collection type (no draft & publish); keep it required, it is the regression coverage for scheduling entries with a filled required to-one relation.
+`playground/` is a small Strapi app with realistic content, seeded as drafts (plus an auto-created super admin) in `playground/src/index.js`. All of it is draft & publish except Author and Category:
+- **Article** (collection type): a **required** manyToOne relation to Author, a manyToMany relation to Categories, a required `shared.seo` component and a `blocks` dynamic zone. Keep `author` required: it is the regression coverage for scheduling entries with a filled required to-one relation (#240). The seeded "Incomplete article" is missing required fields (author, SEO), so scheduling it to be published shows validation errors.
+- **Homepage** (single type): a required `blocks.hero` component (with a nested `shared.link`), a `sections` dynamic zone and SEO.
+- **Page** (collection type, i18n `en` + `nl`): localized SEO, sections and a repeatable FAQ component. The seed creates the `nl` locale, two pages in both locales and "Nieuws" in `nl` only. Use it to test locale-restricted publish permissions.
+- **Author** and **Category**: relation targets without draft & publish.
+- Components live in `playground/src/components/{shared,blocks}`. `blocks.media` has a required media field, to test media validation.
+- The seed only runs on an empty database; run `yarn playground:reset` after changing it.
 
 - Its dependencies live in the **root** `package.json`; never run `yarn install` inside `playground/` (plugin and app must share one copy of Strapi/React).
 - `playground/config/plugins.js` loads the plugin via `resolve:` an absolute path to the repo root, so Strapi uses the root `exports` → **`dist/`**, not the source. Changes only take effect after `strapi-plugin watch` rebuilds.
