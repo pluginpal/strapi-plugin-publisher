@@ -176,6 +176,12 @@ Once the plugin has been installed, configured and enabled a `Publisher` section
 
 > If the Publisher section does not appear in the admin after the plugin is enabled then a clean rebuild of the admin is required. This can be done by deleting the generated `.cache` and `build` folders and then re-running the `develop` command. 
 
+### Permissions
+
+Scheduling, editing and deleting a (un)publish date requires the same permission as publishing directly: the Content Manager `Publish` permission for that content type (including its conditions and locales) on the user's role. Users without it can't manage scheduled dates through the admin API either, and only see the scheduled dates of content types they are allowed to read.
+
+The Content API routes (`/api/publisher/actions`) are not affected by this; access to them is managed with the Users & Permissions plugin or API token permissions.
+
 ### Single Content Type
 
 ![Sample single content type publisher section](https://github.com/PluginPal/strapi-plugin-publisher/blob/master/assets/single.png?raw=true)

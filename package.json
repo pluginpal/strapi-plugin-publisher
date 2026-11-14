@@ -18,7 +18,7 @@
         "playground:strapi": "cd playground && strapi",
         "playground:reset": "node -e \"require('fs').rmSync('playground/.tmp', { recursive: true, force: true })\"",
         "check:lockfile-age": "node scripts/check-lockfile-age.js",
-        "playground:smoke": "node playground/scripts/smoke-test.js",
+        "playground:smoke": "node --test-reporter=spec playground/scripts/smoke-test",
         "consumer-test": "node scripts/consumer-test.js"
     },
     "exports": {
