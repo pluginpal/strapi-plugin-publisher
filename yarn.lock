@@ -16943,6 +16943,9 @@ __metadata:
     react: ^17.0.0 || ^18.0.0
     react-router-dom: ^6.0.0
     styled-components: ^6.0.0
+  peerDependenciesMeta:
+    "@strapi/utils":
+      optional: true
   languageName: unknown
   linkType: soft
 

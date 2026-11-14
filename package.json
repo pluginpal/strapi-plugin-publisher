@@ -92,6 +92,11 @@
         "react-router-dom": "^6.0.0",
         "styled-components": "^6.0.0"
     },
+    "peerDependenciesMeta": {
+        "@strapi/utils": {
+            "optional": true
+        }
+    },
     "strapi": {
         "displayName": "Publisher",
         "name": "publisher",
