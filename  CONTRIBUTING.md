@@ -26,6 +26,7 @@ cd strapi-plugin-publisher && yarn install
 ```
 The repository uses **Yarn 4**, which is committed in `.yarn/releases`. Any globally installed `yarn` (also Yarn 1) automatically switches to it, or run `corepack enable` once.
 This also installs everything the playground needs. Don't run `yarn install` inside the `playground` folder: the plugin and the playground have to share a single copy of Strapi and React.
+Use **Node.js 22** for development (see [`.nvmrc`](./.nvmrc)): the build tools and the unit tests need it (Vitest needs at least 22.12). The published plugin itself also supports Node.js 20.
 
 ### 4️⃣ Start the playground
 ```bash
@@ -111,12 +112,12 @@ This builds and packs the plugin with `npm pack`, creates a fresh Strapi app in 
 CI runs the consumer test for the minimum Strapi version on Node.js 20 and the current Strapi version on Node.js 24.
 
 ### 🧪 Unit tests
-The unit tests in [`tests/server`](./tests/server) test the server code without a running Strapi: [`tests/helpers/strapi.js`](./tests/helpers/strapi.js) provides a fake `strapi` object whose APIs are Vitest mocks. They cover what the publisher does with an action:
+The unit tests run without a running Strapi. The ones in [`tests/server`](./tests/server) test the server code: [`tests/helpers/strapi.js`](./tests/helpers/strapi.js) provides a fake `strapi` object whose APIs are Vitest mocks. The ones in [`tests/admin`](./tests/admin) test plain admin helpers (no React components). The server tests cover what the publisher does with an action:
 - **scheduling** (`action-service`): creating, rescheduling and cancelling an action adds, replaces and removes its cron job, and the cron job executes the latest version of the action;
-- **executing** (`publication-service`): when an entry is (un)published, the `before*` hooks that can cancel it, the `after*` hooks, the `entry.publish`/`entry.unpublish` events, `publishedAt` set to the scheduled time, and removing the executed action;
+- **executing** (`publication-service`): when an entry is (un)published, the `before*` hooks that can cancel it, the `after*` hooks, the `entry.publish`/`entry.unpublish` events, `publishedAt` set to the scheduled time, and removing the action once it ran, was cancelled or failed;
 - **startup** (`cron-tasks`): overdue actions are executed and future ones scheduled;
-- **validation** (`validate-before-scheduling`): a publish action is refused when the entry is missing required fields, media, relations or component fields;
-- **plugin setup**: config defaults and validation, routes, the settings endpoint and the action content type.
+- **validation** (`validate-before-scheduling`): a publish action is refused when the entry is missing required fields, media, relations or component fields, and accepted when they are filled (also to-one relations, #240);
+- **plugin setup**: config defaults and validation, routes and the controller methods and services they need, the settings endpoint and the action content type.
 
 Add or update a test when you change one of these. The smoke test still checks that it all works together in a real Strapi.
 

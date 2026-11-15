@@ -59,12 +59,18 @@ describe('publication service', () => {
 
 			await service.toggle(action('publish'), 'publish');
 
-			expect(publish).toHaveBeenCalledOnce();
+			expect(publish).toHaveBeenCalledWith(ARTICLE_UID, 'article-1', {
+				publishedAt: new Date(EXECUTE_AT),
+				locale: undefined,
+			});
 		});
 
-		it('does not publish again when the published version is up to date', async () => {
+		it.each([
+			['as old as', '2029-12-01T00:00:00.000Z'],
+			['older than', '2029-11-30T00:00:00.000Z'],
+		])('does not publish again when the draft is %s the published version', async (_, draftAt) => {
 			mockVersions(articles, {
-				draft: { updatedAt: '2029-12-01T00:00:00.000Z' },
+				draft: { updatedAt: draftAt },
 				published: { updatedAt: '2029-12-01T00:00:00.000Z' },
 			});
 			const publish = vi.spyOn(service, 'publish').mockResolvedValue();
@@ -118,12 +124,60 @@ describe('publication service', () => {
 			);
 		});
 
-		it.each(['publish', 'unpublish'])('always removes the executed %s action', async (mode) => {
-			mockVersions(articles, {});
+		it.each(['publish', 'unpublish'])(
+			'removes the %s action when the entry no longer exists',
+			async (mode) => {
+				mockVersions(articles, {});
 
-			await service.toggle(action(mode), mode);
+				await service.toggle(action(mode), mode);
 
-			expect(actions.delete).toHaveBeenCalledWith({ documentId: 'action-1' });
+				expect(articles[mode]).not.toHaveBeenCalled();
+				expect(actions.delete).toHaveBeenCalledWith({ documentId: 'action-1' });
+			}
+		);
+
+		describe('removing the executed action', () => {
+			// A draft with changes since it was published, so it can be published and unpublished.
+			beforeEach(() => {
+				mockVersions(articles, {
+					draft: { updatedAt: '2029-12-02T00:00:00.000Z' },
+					published: { updatedAt: '2029-12-01T00:00:00.000Z' },
+				});
+			});
+
+			it.each(['publish', 'unpublish'])('removes the %s action once it ran', async (mode) => {
+				await service.toggle(action(mode), mode);
+
+				expect(articles[mode]).toHaveBeenCalledOnce();
+				expect(actions.delete).toHaveBeenCalledWith({ documentId: 'action-1' });
+				expect(articles[mode].mock.invocationCallOrder[0]).toBeLessThan(
+					actions.delete.mock.invocationCallOrder[0]
+				);
+			});
+
+			it.each([
+				['publish', 'beforePublish'],
+				['unpublish', 'beforeUnpublish'],
+			])('removes the %s action when %s cancels it', async (mode, hook) => {
+				config.hooks[hook].mockResolvedValue(false);
+
+				await service.toggle(action(mode), mode);
+
+				expect(config.hooks[hook]).toHaveBeenCalledOnce();
+				expect(articles[mode]).not.toHaveBeenCalled();
+				expect(actions.delete).toHaveBeenCalledWith({ documentId: 'action-1' });
+			});
+
+			it.each(['publish', 'unpublish'])('removes the %s action when it fails', async (mode) => {
+				articles[mode].mockRejectedValue(new Error('database is locked'));
+
+				await service.toggle(action(mode), mode);
+
+				expect(strapi.log.error).toHaveBeenCalledWith(
+					expect.stringContaining('database is locked')
+				);
+				expect(actions.delete).toHaveBeenCalledWith({ documentId: 'action-1' });
+			});
 		});
 	});
 
@@ -142,6 +196,10 @@ describe('publication service', () => {
 				entity: draft,
 			});
 			expect(articles.publish).toHaveBeenCalledWith({ documentId: 'article-1', locale: 'en' });
+			expect(strapi.contentAPI.sanitize.output).toHaveBeenCalledWith(
+				published,
+				expect.objectContaining({ uid: ARTICLE_UID })
+			);
 			expect(strapi.eventHub.emit).toHaveBeenCalledWith('entry.publish', {
 				model: 'article',
 				entry: { ...published, sanitized: true },
@@ -158,9 +216,15 @@ describe('publication service', () => {
 
 			await service.publish(ARTICLE_UID, 'article-1', {});
 
+			expect(config.hooks.beforePublish).toHaveBeenCalledOnce();
 			expect(articles.publish).not.toHaveBeenCalled();
 			expect(strapi.eventHub.emit).not.toHaveBeenCalled();
 			expect(config.hooks.afterPublish).not.toHaveBeenCalled();
+			// Cancelled on purpose, not by an error.
+			expect(strapi.log.error).not.toHaveBeenCalled();
+			expect(strapi.log.info).toHaveBeenCalledWith(
+				expect.stringContaining('aborted by beforePublish')
+			);
 		});
 
 		it.each([undefined, null, true])('continues when beforePublish returns %s', async (result) => {
@@ -195,6 +259,20 @@ describe('publication service', () => {
 				strapi,
 				uid: ARTICLE_UID,
 				entity: updated,
+			});
+		});
+
+		it('keeps the publish result when there is no published entry to set publishedAt on', async () => {
+			const published = { documentId: 'article-1', entries: [] };
+			articles.publish.mockResolvedValue(published);
+
+			await service.publish(ARTICLE_UID, 'article-1', { publishedAt: new Date(EXECUTE_AT) });
+
+			expect(strapi.db.query).not.toHaveBeenCalled();
+			expect(config.hooks.afterPublish).toHaveBeenCalledWith({
+				strapi,
+				uid: ARTICLE_UID,
+				entity: published,
 			});
 		});
 
@@ -239,8 +317,15 @@ describe('publication service', () => {
 
 			await service.unpublish(ARTICLE_UID, 'article-1', {});
 
+			expect(config.hooks.beforeUnpublish).toHaveBeenCalledOnce();
 			expect(articles.unpublish).not.toHaveBeenCalled();
+			expect(strapi.eventHub.emit).not.toHaveBeenCalled();
 			expect(config.hooks.afterUnpublish).not.toHaveBeenCalled();
+			// Cancelled on purpose, not by an error.
+			expect(strapi.log.error).not.toHaveBeenCalled();
+			expect(strapi.log.info).toHaveBeenCalledWith(
+				expect.stringContaining('aborted by beforeUnpublish')
+			);
 		});
 
 		it('logs errors instead of throwing them', async () => {

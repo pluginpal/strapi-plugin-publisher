@@ -44,17 +44,26 @@ const publishAction = (data = {}) => ({
 	},
 });
 
+/** Let `findOne` return `draft` for the draft and nothing for the published version. */
+const mockDraft = (articles, draft) => {
+	articles.findOne.mockImplementation(async ({ status }) => (status === 'draft' ? draft : null));
+};
+
 describe('validation before scheduling a publish action', () => {
 	let strapi;
 	let articles;
+	let populateBuilder;
 	let next;
 
 	beforeEach(() => {
-		({ strapi } = createStrapi({ contentTypes: { [ARTICLE_UID]: articleModel }, components }));
+		let contentManagerServices;
+		({ strapi, contentManagerServices } = createStrapi({
+			contentTypes: { [ARTICLE_UID]: articleModel },
+			components,
+		}));
+		populateBuilder = contentManagerServices['populate-builder'];
 		articles = strapi.documents(ARTICLE_UID);
-		articles.findOne.mockImplementation(async ({ status }) =>
-			status === 'draft' ? validDraft : null
-		);
+		mockDraft(articles, validDraft);
 		next = vi.fn().mockResolvedValue('next-result');
 	});
 
@@ -95,25 +104,46 @@ describe('validation before scheduling a publish action', () => {
 			{ isDraft: false, locale: 'en' },
 			null
 		);
+		// Without a locale in the action, the published version is looked up in the draft's locale.
+		expect(articles.findOne).toHaveBeenCalledWith(
+			expect.objectContaining({ status: 'published', locale: 'en' })
+		);
 	});
 
-	it('validates the draft in the locale of the action', async () => {
+	it('loads the deep-populated draft and published version in the locale of the action', async () => {
+		// Without a deep populate, relations, media and components would be missing from the draft
+		// and every required one would be reported as empty.
+		const populate = { deep: true };
+		populateBuilder.builder.build.mockResolvedValue(populate);
+
 		await validateBeforeScheduling(publishAction({ locale: 'nl' }), next);
 
-		expect(articles.findOne).toHaveBeenCalledWith(
-			expect.objectContaining({ status: 'draft', locale: 'nl' })
-		);
-		expect(articles.findOne).toHaveBeenCalledWith(
-			expect.objectContaining({ status: 'published', locale: 'nl' })
-		);
+		expect(populateBuilder).toHaveBeenCalledWith(ARTICLE_UID);
+		expect(populateBuilder.builder.populateDeep).toHaveBeenCalledWith(Infinity);
+		expect(articles.findOne).toHaveBeenCalledWith({
+			documentId: 'article-1',
+			status: 'draft',
+			locale: 'nl',
+			populate,
+		});
+		expect(articles.findOne).toHaveBeenCalledWith({
+			documentId: 'article-1',
+			status: 'published',
+			locale: 'nl',
+			populate,
+		});
 	});
 
-	it('throws a NotFoundError when there is no draft', async () => {
+	it.each([
+		[undefined, 'No draft found for api::article.article with documentId "article-1".'],
+		['nl', 'No draft found for api::article.article with documentId "article-1" and locale "nl".'],
+	])('throws a NotFoundError when there is no draft (locale %s)', async (locale, message) => {
 		articles.findOne.mockResolvedValue(null);
 
-		await expect(validateBeforeScheduling(publishAction(), next)).rejects.toBeInstanceOf(
-			errors.NotFoundError
-		);
+		const error = await validateBeforeScheduling(publishAction({ locale }), next).catch((e) => e);
+
+		expect(error).toBeInstanceOf(errors.NotFoundError);
+		expect(error.message).toBe(message);
 		expect(next).not.toHaveBeenCalled();
 	});
 
@@ -163,6 +193,141 @@ describe('validation before scheduling a publish action', () => {
 			['slides', 1, 'image'],
 			['blocks', 0, 'image'],
 		]);
+	});
+
+	it("falls back to the error's name and a default message", async () => {
+		strapi.entityValidator.validateEntityCreation.mockRejectedValue(
+			new errors.ValidationError('Invalid', { errors: [{ name: 'title' }] })
+		);
+
+		const error = await expectValidationErrors(publishAction(), ['title']);
+
+		expect(error.details.errors[0].message).toBe('This field is required');
+	});
+
+	it('accepts dynamic zone items without a component type', async () => {
+		mockDraft(articles, { ...validDraft, blocks: [{ image: null }] });
+
+		await expect(validateBeforeScheduling(publishAction(), next)).resolves.toBe('next-result');
+	});
+
+	it('requires required components and dynamic zones to have content', async () => {
+		strapi.contentType.mockReturnValue({
+			uid: ARTICLE_UID,
+			attributes: {
+				seo: { type: 'component', component: 'shared.seo', required: true },
+				slides: { type: 'component', component: 'shared.slide', repeatable: true, required: true },
+				blocks: { type: 'dynamiczone', components: ['shared.slide'], required: true },
+			},
+		});
+		mockDraft(articles, { documentId: 'article-1', seo: null, slides: [], blocks: [] });
+
+		await expectValidationErrors(publishAction(), [['seo'], ['slides'], ['blocks']]);
+	});
+
+	it('requires a required multiple media field to have files', async () => {
+		strapi.contentType.mockReturnValue({
+			uid: ARTICLE_UID,
+			attributes: { photos: { type: 'media', multiple: true, required: true } },
+		});
+		mockDraft(articles, { documentId: 'article-1', photos: [] });
+
+		await expectValidationErrors(publishAction(), [['photos']]);
+	});
+
+	describe('required relations (#240)', () => {
+		const TO_ONE = ['manyToOne', 'oneToOne', 'morphOne', 'morphToOne'];
+		const TO_MANY = ['oneToMany', 'manyToMany', 'morphMany', 'morphToMany'];
+
+		/** An article with only a required `owner` relation of the given type. */
+		const mockRequiredRelation = (relation, draft) => {
+			strapi.contentType.mockReturnValue({
+				uid: ARTICLE_UID,
+				attributes: {
+					owner: { type: 'relation', relation, target: 'api::author.author', required: true },
+				},
+			});
+			mockDraft(articles, { documentId: 'article-1', ...draft });
+		};
+
+		it.each(TO_ONE)('accepts a filled required %s relation', async (relation) => {
+			mockRequiredRelation(relation, { owner: { id: 1, documentId: 'author-1' } });
+
+			await expect(validateBeforeScheduling(publishAction(), next)).resolves.toBe('next-result');
+		});
+
+		it.each(TO_ONE)('rejects an empty required %s relation', async (relation) => {
+			mockRequiredRelation(relation, { owner: null });
+
+			await expectValidationErrors(publishAction(), [['owner']]);
+		});
+
+		it.each(TO_ONE)('rejects a required %s relation that is missing', async (relation) => {
+			mockRequiredRelation(relation, {});
+
+			await expectValidationErrors(publishAction(), [['owner']]);
+		});
+
+		it.each(TO_MANY)('accepts a required %s relation with entries', async (relation) => {
+			mockRequiredRelation(relation, { owner: [{ id: 1, documentId: 'author-1' }] });
+
+			await expect(validateBeforeScheduling(publishAction(), next)).resolves.toBe('next-result');
+		});
+
+		it.each(TO_MANY)('rejects a required %s relation without entries', async (relation) => {
+			mockRequiredRelation(relation, { owner: [] });
+
+			await expectValidationErrors(publishAction(), [['owner']]);
+		});
+
+		describe('inside components and dynamic zones', () => {
+			beforeEach(() => {
+				strapi.contentType.mockReturnValue({
+					uid: ARTICLE_UID,
+					attributes: {
+						byline: { type: 'component', component: 'shared.byline' },
+						credits: { type: 'component', component: 'shared.credits', repeatable: true },
+						blocks: { type: 'dynamiczone', components: ['shared.quote'] },
+					},
+				});
+				strapi.components = {
+					'shared.byline': {
+						attributes: { author: { type: 'relation', relation: 'manyToOne', required: true } },
+					},
+					'shared.credits': {
+						attributes: { people: { type: 'relation', relation: 'manyToMany', required: true } },
+					},
+					'shared.quote': {
+						attributes: { source: { type: 'relation', relation: 'oneToOne', required: true } },
+					},
+				};
+			});
+
+			it('accepts filled required to-one relations', async () => {
+				mockDraft(articles, {
+					documentId: 'article-1',
+					byline: { author: { id: 1 } },
+					blocks: [{ __component: 'shared.quote', source: { id: 2 } }],
+				});
+
+				await expect(validateBeforeScheduling(publishAction(), next)).resolves.toBe('next-result');
+			});
+
+			it('rejects empty required relations with their path', async () => {
+				mockDraft(articles, {
+					documentId: 'article-1',
+					byline: { author: null },
+					credits: [{ people: [{ id: 1 }] }, { people: [] }],
+					blocks: [{ __component: 'shared.quote', source: null }],
+				});
+
+				await expectValidationErrors(publishAction(), [
+					['byline', 'author'],
+					['credits', 1, 'people'],
+					['blocks', 0, 'source'],
+				]);
+			});
+		});
 	});
 
 	it('rethrows errors that are not validation errors', async () => {

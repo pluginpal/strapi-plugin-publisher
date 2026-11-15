@@ -1,43 +1,35 @@
+import { errors } from '@strapi/utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import actionController from '../../server/controllers/action-controller';
 import { createStrapi } from '../helpers/strapi';
-
-// Strapi's core controller, which the action controller extends.
-const coreController = {
-	find: vi.fn(),
-	validateQuery: vi.fn(),
-	sanitizeQuery: vi.fn(),
-	sanitizeOutput: vi.fn(),
-	transformResponse: vi.fn(),
-};
-
-vi.mock('@strapi/strapi', () => ({
-	factories: {
-		createCoreController:
-			(uid, extend) =>
-			({ strapi }) =>
-				Object.setPrototypeOf(extend({ strapi }), coreController),
-	},
-}));
-
-const { default: actionController } = await import('../../server/controllers/action-controller');
 
 describe('action controller find', () => {
 	let actionService;
 	let controller;
+	let coreFind;
+	let validatedQuery;
 
 	beforeEach(() => {
 		actionService = {
 			find: vi.fn().mockResolvedValue({ results: [{ documentId: 'a1' }], pagination: { page: 1 } }),
 		};
 		const { strapi } = createStrapi({ services: { action: actionService } });
+		// The controller extends Strapi's real core controller. Validating and sanitizing the query
+		// and output need Strapi's content API, so they are replaced with spies that change what
+		// they get: skipping one of them would change the result.
 		controller = actionController({ strapi });
-		coreController.find.mockReset().mockResolvedValue('core-find');
-		coreController.validateQuery.mockReset();
-		coreController.sanitizeQuery.mockReset().mockImplementation(async (ctx) => ({ ...ctx.query }));
-		coreController.sanitizeOutput.mockReset().mockImplementation(async (results) => results);
-		coreController.transformResponse
-			.mockReset()
-			.mockImplementation((data, meta) => ({ data, meta }));
+		coreFind = vi.spyOn(Object.getPrototypeOf(controller), 'find').mockResolvedValue('core-find');
+		validatedQuery = undefined;
+		vi.spyOn(controller, 'validateQuery').mockImplementation(async (ctx) => {
+			validatedQuery = structuredClone(ctx.query);
+		});
+		vi.spyOn(controller, 'sanitizeQuery').mockResolvedValue({
+			filters: { mode: 'publish' },
+			fields: ['executeAt'],
+		});
+		vi.spyOn(controller, 'sanitizeOutput').mockImplementation(async (results) =>
+			results.map((action) => ({ ...action, sanitized: true }))
+		);
 	});
 
 	it("uses Strapi's find without a locale", async () => {
@@ -45,7 +37,7 @@ describe('action controller find', () => {
 
 		await expect(controller.find(ctx)).resolves.toBe('core-find');
 
-		expect(coreController.find).toHaveBeenCalledWith(ctx);
+		expect(coreFind).toHaveBeenCalledWith(ctx);
 		expect(actionService.find).not.toHaveBeenCalled();
 	});
 
@@ -56,14 +48,39 @@ describe('action controller find', () => {
 		const response = await controller.find(ctx);
 
 		// The locale is removed from the query before Strapi validates it.
-		expect(coreController.validateQuery).toHaveBeenCalledWith(
-			expect.objectContaining({ query: { filters } })
-		);
+		expect(validatedQuery).toEqual({ filters });
+		// The sanitized query is used, with the locale added to its filters.
 		expect(actionService.find).toHaveBeenCalledWith({
-			filters: { $and: [filters, { locale: 'nl' }] },
+			fields: ['executeAt'],
+			filters: { $and: [{ mode: 'publish' }, { locale: 'nl' }] },
 		});
-		expect(response).toEqual({ data: [{ documentId: 'a1' }], meta: { pagination: { page: 1 } } });
-		expect(coreController.find).not.toHaveBeenCalled();
+		// The output is sanitized for the user making the request (ctx.state.auth).
+		expect(controller.sanitizeOutput).toHaveBeenCalledWith([{ documentId: 'a1' }], ctx);
+		expect(response).toEqual({
+			data: [{ documentId: 'a1', sanitized: true }],
+			meta: { pagination: { page: 1 } },
+		});
+		expect(coreFind).not.toHaveBeenCalled();
+	});
+
+	it('only filters on the locale when there are no other filters', async () => {
+		controller.sanitizeQuery.mockResolvedValue({});
+
+		await controller.find({ query: { locale: 'nl' } });
+
+		expect(actionService.find).toHaveBeenCalledWith({
+			filters: { $and: [{}, { locale: 'nl' }] },
+		});
+	});
+
+	it('does not look up any actions when the query is invalid', async () => {
+		controller.validateQuery.mockRejectedValue(new errors.ValidationError('Invalid key'));
+
+		await expect(
+			controller.find({ query: { filters: { secret: true }, locale: 'nl' } })
+		).rejects.toBeInstanceOf(errors.ValidationError);
+
+		expect(actionService.find).not.toHaveBeenCalled();
 	});
 
 	it('rejects a locale that is not a string', async () => {

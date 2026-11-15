@@ -20,6 +20,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
       - name: Install dependencies
         run: yarn install --immutable
+      - name: Unit tests
+        run: yarn test
       - name: Build the plugin
         run: yarn build
       - name: Get the release tag version

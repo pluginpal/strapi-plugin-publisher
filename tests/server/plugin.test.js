@@ -1,11 +1,16 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import config from '../../server/config';
 import actionContentType from '../../server/content-types/action-content-type';
 import settingsController from '../../server/controllers/settings-controller';
+import plugin from '../../server/index';
 import validateBeforeScheduling from '../../server/middlewares/validate-before-scheduling';
-import register from '../../server/register';
 import routes from '../../server/routes';
-import { createConfig, createStrapi } from '../helpers/strapi';
+import pluginId from '../../server/utils/pluginId';
+import { ACTION_UID, createConfig, createStrapi } from '../helpers/strapi';
+
+const SERVER_DIR = join(import.meta.dirname, '../../server');
 
 describe('plugin config', () => {
 	it('has defaults with no-op hooks', () => {
@@ -36,24 +41,92 @@ describe('plugin config', () => {
 
 describe('routes', () => {
 	const crud = [
-		['GET', '/actions', 'actionController.find'],
-		['POST', '/actions', 'actionController.create'],
-		['PUT', '/actions/:id', 'actionController.update'],
-		['DELETE', '/actions/:id', 'actionController.delete'],
+		{ method: 'GET', path: '/actions', handler: 'actionController.find' },
+		{ method: 'POST', path: '/actions', handler: 'actionController.create' },
+		{ method: 'PUT', path: '/actions/:id', handler: 'actionController.update' },
+		{ method: 'DELETE', path: '/actions/:id', handler: 'actionController.delete' },
 	];
-	const toTuples = (router) =>
-		router.routes.map(({ method, path, handler }) => [method, path, handler]);
+	// Without `config`, so adding policies or middlewares to an admin route doesn't break this
+	// test; test those where they are added.
+	const withoutConfig = (router) =>
+		router.routes.map(({ method, path, handler }) => ({ method, path, handler }));
 
 	it('exposes the actions and settings in the admin API', () => {
+		const expected = [
+			...crud,
+			{ method: 'GET', path: '/settings', handler: 'settingsController.find' },
+		];
+
 		expect(routes.admin.type).toBe('admin');
-		expect(toTuples(routes.admin)).toEqual(
-			expect.arrayContaining([...crud, ['GET', '/settings', 'settingsController.find']])
-		);
+		expect(withoutConfig(routes.admin)).toHaveLength(expected.length);
+		expect(withoutConfig(routes.admin)).toEqual(expect.arrayContaining(expected));
 	});
 
 	it('exposes the actions in the content API', () => {
+		// Complete route objects: the content API relies on Strapi's own permissions for the action
+		// content type, so a route config (policies, middlewares, auth) has to show up here.
 		expect(routes['content-api'].type).toBe('content-api');
-		expect(toTuples(routes['content-api'])).toEqual(expect.arrayContaining(crud));
+		expect(routes['content-api'].routes).toHaveLength(crud.length);
+		expect(routes['content-api'].routes).toEqual(expect.arrayContaining(crud));
+	});
+
+	it('requires authentication on every route', () => {
+		for (const router of Object.values(routes)) {
+			for (const route of router.routes) {
+				expect(route.config?.auth, `${route.method} ${route.path}`).not.toBe(false);
+			}
+		}
+	});
+});
+
+describe('plugin entry (server/index.js)', () => {
+	it('has a controller method for every route handler', () => {
+		const { strapi } = createStrapi();
+
+		for (const router of Object.values(plugin.routes)) {
+			for (const { handler } of router.routes) {
+				const [controllerName, method] = handler.split('.');
+				const controller = plugin.controllers[controllerName];
+				const instance = typeof controller === 'function' ? controller({ strapi }) : controller;
+				expect(instance?.[method], handler).toBeTypeOf('function');
+			}
+		}
+	});
+
+	it('registers every service the plugin looks up by name', () => {
+		const used = new Set();
+		const files = readdirSync(SERVER_DIR, { recursive: true }).filter((f) => f.endsWith('.js'));
+		for (const file of files) {
+			const source = readFileSync(join(SERVER_DIR, file), 'utf8');
+			const lookups = [
+				...source.matchAll(/getPluginService\('([^']+)'\)/g),
+				...source.matchAll(/plugin\('publisher'\)\s*\.service\('([^']+)'\)/g),
+			];
+			lookups.forEach(([, name]) => used.add(name));
+		}
+
+		expect(used).toContain('publicationService');
+		expect(Object.keys(plugin.services)).toEqual(expect.arrayContaining([...used]));
+	});
+
+	it('registers the action content type under the uid the plugin uses', () => {
+		expect(Object.keys(plugin.contentTypes)).toEqual(['action']);
+		expect(plugin.contentTypes.action.schema).toBe(actionContentType);
+		expect(`plugin::${pluginId}.action`).toBe(ACTION_UID);
+	});
+
+	it('schedules the existing actions in bootstrap, once all plugins are ready', async () => {
+		const actionService = {
+			find: vi.fn().mockResolvedValue({ results: [] }),
+			scheduleCronJob: vi.fn(),
+		};
+		const { strapi } = createStrapi({ services: { action: actionService } });
+
+		plugin.bootstrap({ strapi });
+
+		expect(actionService.find).not.toHaveBeenCalled();
+		await new Promise((resolve) => setImmediate(resolve));
+		expect(actionService.find).toHaveBeenCalledOnce();
 	});
 });
 
@@ -73,7 +146,7 @@ describe('register', () => {
 	it('adds the validation middleware to the Document Service', () => {
 		const { strapi } = createStrapi();
 
-		register({ strapi });
+		plugin.register({ strapi });
 
 		expect(strapi.documents.use).toHaveBeenCalledWith(validateBeforeScheduling);
 	});

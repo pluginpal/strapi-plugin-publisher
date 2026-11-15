@@ -14,10 +14,29 @@ const createDocumentService = () => ({
 	findMany: vi.fn().mockResolvedValue([]),
 	create: vi.fn(),
 	update: vi.fn(),
-	delete: vi.fn().mockResolvedValue({}),
+	// Like the Document Service: the documentId and the deleted entries (locales).
+	delete: vi.fn().mockResolvedValue({ documentId: 'doc', entries: [] }),
 	publish: vi.fn().mockResolvedValue({ documentId: 'doc', entries: [] }),
 	unpublish: vi.fn().mockResolvedValue({ documentId: 'doc', entries: [] }),
 });
+
+/**
+ * A fake of the content manager's `populate-builder` service: `populateBuilder(uid)` returns a
+ * chainable builder like the real one. There is one builder per fake, available as
+ * `populateBuilder.builder`, so tests can check the calls or change what `build()` resolves to
+ * (`'*'` by default).
+ */
+const createPopulateBuilder = () => {
+	const builder = {
+		populateFromQuery: vi.fn(() => builder),
+		populateDeep: vi.fn(() => builder),
+		countRelations: vi.fn(() => builder),
+		build: vi.fn(async () => '*'),
+	};
+	const populateBuilder = vi.fn(() => builder);
+	populateBuilder.builder = builder;
+	return populateBuilder;
+};
 
 /**
  * Plugin config as it ends up after Strapi merged the user config with the defaults
@@ -41,14 +60,23 @@ export const createConfig = (overrides = {}) => ({
  * Minimal stand-in for the global `strapi` object with just the APIs the plugin uses.
  * It is also installed as `global.strapi`, because the plugin uses the global in some places.
  *
- * `services` replaces or adds plugin services (e.g. a mocked publicationService); the real
- * settingsService and emitService are used by default.
+ * - `services` replaces or adds plugin services (e.g. a mocked publicationService); the real
+ *   settingsService and emitService are used by default.
+ * - `contentTypes` and `components` are the models, keyed by uid (`strapi.contentType(uid)`,
+ *   `strapi.contentTypes`, `strapi.components`).
+ * - `contentManagerServices` replaces or adds services of the content-manager plugin; by default
+ *   it only has a fake `populate-builder` (see createPopulateBuilder).
+ *
+ * Like in Strapi, `strapi.plugin(name)` is undefined for plugins other than `publisher` and
+ * `content-manager`, and the cron service keeps every job that is added, also when two jobs have
+ * the same name (`getCronJobs(name)`).
  */
 export const createStrapi = ({
 	config = createConfig(),
 	services = {},
 	contentTypes = {},
 	components = {},
+	contentManagerServices = {},
 } = {}) => {
 	const documentServices = {};
 	const documents = vi.fn((uid) => {
@@ -58,8 +86,14 @@ export const createStrapi = ({
 	documents.use = vi.fn();
 
 	const dbQueries = {};
+	// The last job added per name, and every added job (Strapi's cron service keeps both when a
+	// name is added twice).
 	const cronJobs = {};
+	let scheduledCronJobs = [];
+	const getCronJobs = (name) =>
+		scheduledCronJobs.filter((job) => job.name === name).map(({ job }) => job);
 	const pluginServices = {};
+	const cmServices = { 'populate-builder': createPopulateBuilder(), ...contentManagerServices };
 
 	const strapi = {
 		documents,
@@ -71,14 +105,22 @@ export const createStrapi = ({
 		},
 		cron: {
 			jobs: cronJobs,
-			add: vi.fn((tasks) => Object.assign(cronJobs, tasks)),
+			add: vi.fn((tasks) => {
+				for (const [name, job] of Object.entries(tasks)) {
+					scheduledCronJobs.push({ name, job });
+					cronJobs[name] = job;
+				}
+			}),
+			// Like Strapi's: removes every job with that name, and only throws without a name.
 			remove: vi.fn((name) => {
+				if (!name) throw new Error('You must provide a name to remove a cron job.');
+				scheduledCronJobs = scheduledCronJobs.filter((job) => job.name !== name);
 				delete cronJobs[name];
 			}),
 		},
 		log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 		config: {
-			get: vi.fn((key) => (key === 'plugin::publisher' ? config : undefined)),
+			get: vi.fn((key, defaultValue) => (key === 'plugin::publisher' ? config : defaultValue)),
 		},
 		eventHub: { emit: vi.fn().mockResolvedValue(undefined) },
 		contentAPI: {
@@ -86,17 +128,26 @@ export const createStrapi = ({
 		},
 		getModel: vi.fn((uid) => ({ uid, modelName: uid.split('.').pop() })),
 		contentType: vi.fn((uid) => contentTypes[uid] ?? { uid, attributes: {} }),
+		contentTypes,
 		components,
 		entityValidator: { validateEntityCreation: vi.fn().mockResolvedValue(undefined) },
 		plugin: vi.fn((name) => {
+			if (name === 'publisher') {
+				return { service: (serviceName) => pluginServices[serviceName] };
+			}
 			if (name === 'content-manager') {
 				return {
-					service: () => () => ({
-						populateDeep: () => ({ build: async () => '*' }),
-					}),
+					service: (serviceName) => {
+						if (!cmServices[serviceName]) {
+							throw new Error(
+								`The fake content-manager has no "${serviceName}" service, pass it in createStrapi({ contentManagerServices }).`
+							);
+						}
+						return cmServices[serviceName];
+					},
 				};
 			}
-			return { service: (serviceName) => pluginServices[serviceName] };
+			return undefined;
 		}),
 	};
 
@@ -106,13 +157,15 @@ export const createStrapi = ({
 		...services,
 	});
 
-	global.strapi = strapi;
+	vi.stubGlobal('strapi', strapi);
 	return {
 		strapi,
 		config,
 		documents: documentServices,
 		dbQueries,
 		cronJobs,
+		getCronJobs,
 		services: pluginServices,
+		contentManagerServices: cmServices,
 	};
 };
