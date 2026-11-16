@@ -1,4 +1,5 @@
 import { factories } from '@strapi/strapi';
+import { errors } from '@strapi/utils';
 
 /**
  *  controller
@@ -14,23 +15,33 @@ export default factories.createCoreController('plugin::publisher.action', ({ str
 	 * of a document would share the same scheduled action.
 	 */
 	async find(ctx) {
-		const sanitizedQuery = await this.sanitizeQuery(ctx);
-		const { filters: rawFilters } = ctx.query || {};
+		const query = ctx.query || {};
+		const locale = query.filters?.locale;
+		let queryContext = ctx;
 
-		if (rawFilters?.locale !== undefined) {
-			const { locale } = rawFilters;
-
-			if (!sanitizedQuery.filters) {
-				sanitizedQuery.filters = {};
+		if (locale !== undefined) {
+			if (locale !== null && typeof locale !== 'string') {
+				throw new errors.ValidationError('filters.locale must be a string or null');
 			}
 
-			// `'null'` guards against query string serializers that turn `null`
-			// into the literal string.
-			if (locale === null || locale === '' || locale === 'null') {
-				sanitizedQuery.filters.locale = null;
-			} else if (typeof locale === 'string') {
-				sanitizedQuery.filters.locale = locale;
-			}
+			// Exempt only the supported top-level locale filter. Keep the original
+			// request and its auth context intact, including when validation fails.
+			const filters = { ...query.filters };
+			delete filters.locale;
+			queryContext = Object.create(ctx, {
+				query: { value: { ...query, filters } },
+			});
+		}
+
+		await this.validateQuery(queryContext);
+		const sanitizedQuery = await this.sanitizeQuery(queryContext);
+
+		if (locale !== undefined) {
+			// Query string serializers may encode null as an empty string or 'null'.
+			sanitizedQuery.filters = {
+				...sanitizedQuery.filters,
+				locale: locale === null || locale === '' || locale === 'null' ? { $null: true } : locale,
+			};
 		}
 
 		const { results, pagination } = await strapi

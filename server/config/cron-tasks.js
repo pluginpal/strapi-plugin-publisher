@@ -6,6 +6,10 @@ const registerCronTasks = ({ strapi }) => {
 	// and execute actions that should have already been executed
 	const scheduleExistingActions = async () => {
 		try {
+			// Normalize before loading actions so both overdue and future jobs,
+			// as well as the admin UI, use the same explicit locale.
+			await getPluginService('action').normalizeLegacyLocales();
+
 			// Find all pending actions
 			const allActions = await getPluginService('action').find({
 				pagination: {
