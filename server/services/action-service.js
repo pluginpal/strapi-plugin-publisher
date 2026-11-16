@@ -8,6 +8,36 @@ import logMessage from '../utils/logMessage';
 
 export default factories.createCoreService('plugin::publisher.action', ({ strapi }) => ({
 	/**
+	 * Keep legacy schedules visible in the locale they would execute against.
+	 * Update stored locales without recreating actions or scheduling jobs.
+	 */
+	async normalizeLegacyLocales() {
+		const i18n = strapi.plugin('i18n');
+		if (!i18n) return;
+
+		const localizedTypes = Object.values(strapi.contentTypes)
+			.filter((contentType) => i18n.service('content-types').isLocalizedContentType(contentType))
+			.map((contentType) => contentType.uid);
+
+		if (localizedTypes.length === 0) return;
+
+		const defaultLocale = await i18n.service('locales').getDefaultLocale();
+		if (!defaultLocale) {
+			throw new Error('Cannot normalize publisher actions without a default locale.');
+		}
+
+		// Preserve IDs and execution times; leave explicit locales and
+		// schedules for non-localized content types unchanged. Safe to rerun.
+		await strapi.db.query('plugin::publisher.action').updateMany({
+			where: {
+				locale: { $null: true },
+				entitySlug: { $in: localizedTypes },
+			},
+			data: { locale: defaultLocale },
+		});
+	},
+
+	/**
 	 * Schedule a cron job for a specific action
 	 */
 	scheduleCronJob(action) {

@@ -37,6 +37,7 @@ const Action = ({ mode, documentId, entitySlug, locale }) => {
 		mode,
 		entityId: documentId,
 		entitySlug,
+		locale,
 	});
 
 	useEffect(() => {

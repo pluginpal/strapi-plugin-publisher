@@ -57,6 +57,7 @@ export const usePublisher = () => {
 				filters.entityId,
 				filters.entitySlug,
 				filters.mode,
+				filters.locale,
 			]),
 			queryFn: function () {
 				return get(`/${pluginId}/actions`, {
@@ -81,6 +82,7 @@ export const usePublisher = () => {
 				data.entityId,
 				data.entitySlug,
 				data.mode,
+				data.locale,
 			]);
 			onSuccessHandler({
 				queryKey,
@@ -105,6 +107,7 @@ export const usePublisher = () => {
 				data.entityId,
 				data.entitySlug,
 				data.mode,
+				data.locale,
 			]);
 			onSuccessHandler({
 				queryKey,

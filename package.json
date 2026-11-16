@@ -4,6 +4,7 @@
     "version": "2.0.9",
     "description": "A plugin for Strapi Headless CMS that provides the ability to schedule publishing for any content type.",
     "scripts": {
+        "test": "npm run build && node --test tests/*.test.cjs",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "format": "prettier --write **/*.{ts,js,json,yml}",
