@@ -1,4 +1,5 @@
-import { errors, relations } from '@strapi/utils';
+import { relations } from '@strapi/utils';
+import { NotFoundError, ValidationError } from '../utils/errors';
 
 // Polymorphic relations that hold an array
 // (`relations.isAnyToMany` only covers oneToMany/manyToMany).
@@ -43,7 +44,7 @@ const validationMiddleware = async (context, next) => {
 	});
 
 	if (!draft) {
-		throw new errors.NotFoundError(
+		throw new NotFoundError(
 			`No draft found for ${entitySlug} with documentId "${entityId}"${
 				actionLocale ? ` and locale "${actionLocale}".` : '.'
 			}`
@@ -157,7 +158,7 @@ const validationMiddleware = async (context, next) => {
 			const extras = collectRequiredMissing(model, draft);
 			const merged = [...core, ...extras];
 
-			throw new errors.ValidationError(
+			throw new ValidationError(
 				'There are validation errors in your document. Please fix them so you can publish.',
 				{ errors: merged }
 			);
@@ -169,7 +170,7 @@ const validationMiddleware = async (context, next) => {
 	// Enforce required media/relations even if core validator passed
 	const extrasAfterPass = collectRequiredMissing(model, draft);
 	if (extrasAfterPass.length > 0) {
-		throw new errors.ValidationError(
+		throw new ValidationError(
 			'There are validation errors in your document. Please fix them so you can publish.',
 			{ errors: extrasAfterPass }
 		);
