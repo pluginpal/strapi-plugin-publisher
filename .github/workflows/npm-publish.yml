@@ -9,7 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0  # We need the full history to determine the source branch
+          fetch-depth: 0  # Fetch all branches so the version bump can be pushed to the target branch
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -37,12 +37,21 @@ jobs:
             echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
             echo "NPM_TAG=latest" >> $GITHUB_OUTPUT
           fi
-      - name: Get source branch
+      - name: Get target branch
         id: get_branch
+        env:
+          TARGET: ${{ github.event.release.target_commitish }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          RELEASE_COMMIT=$(git rev-list -n 1 ${{ steps.get_version.outputs.VERSION }})
-          SOURCE_BRANCH=$(git branch -r --contains $RELEASE_COMMIT | grep -v HEAD | head -n 1 | sed 's/.*origin\///')
-          echo "SOURCE_BRANCH=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
+          # Push the version bump to the branch the release targets. If the release targets a
+          # commit SHA instead of a branch, fall back to the default branch.
+          if git show-ref --verify --quiet "refs/remotes/origin/$TARGET"; then
+            TARGET_BRANCH="$TARGET"
+          else
+            TARGET_BRANCH="$DEFAULT_BRANCH"
+          fi
+          echo "Pushing version bump to $TARGET_BRANCH"
+          echo "TARGET_BRANCH=$TARGET_BRANCH" >> $GITHUB_OUTPUT
       - name: Set package version
         run: npm version "${{ steps.get_version.outputs.VERSION }}" --no-git-tag-version
       - name: Publish package
@@ -54,4 +63,4 @@ jobs:
         with:
           commit_message: 'chore: Bump version to ${{ steps.get_version.outputs.VERSION }}'
           file_pattern: 'package.json'
-          branch: ${{ steps.get_branch.outputs.SOURCE_BRANCH }}
+          branch: ${{ steps.get_branch.outputs.TARGET_BRANCH }}

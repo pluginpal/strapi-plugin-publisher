@@ -1,0 +1,30 @@
+{
+	"kind": "collectionType",
+	"collectionName": "categories",
+	"info": {
+		"singularName": "category",
+		"pluralName": "categories",
+		"displayName": "Category",
+		"description": "Related to articles; without draft & publish"
+	},
+	"options": {
+		"draftAndPublish": false
+	},
+	"pluginOptions": {},
+	"attributes": {
+		"name": {
+			"type": "string",
+			"required": true
+		},
+		"slug": {
+			"type": "uid",
+			"targetField": "name"
+		},
+		"articles": {
+			"type": "relation",
+			"relation": "manyToMany",
+			"target": "api::article.article",
+			"mappedBy": "categories"
+		}
+	}
+}
