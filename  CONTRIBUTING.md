@@ -26,6 +26,7 @@ cd strapi-plugin-publisher && yarn install
 ```
 The repository uses **Yarn 4**, which is committed in `.yarn/releases`. Any globally installed `yarn` (also Yarn 1) automatically switches to it, or run `corepack enable` once.
 This also installs everything the playground needs. Don't run `yarn install` inside the `playground` folder: the plugin and the playground have to share a single copy of Strapi and React.
+Use **Node.js 22** for development (see [`.nvmrc`](./.nvmrc)): the build tools and the unit tests need it (Vitest needs at least 22.12). The published plugin itself also supports Node.js 20.
 
 ### 4️⃣ Start the playground
 ```bash
@@ -92,9 +93,10 @@ Every pull request runs the [CI workflow](./.github/workflows/ci.yml). You can r
 |---------|-------------|
 | `yarn lint:check` | Run ESLint without changing files (what CI runs) |
 | `yarn lint` | Run ESLint and auto-fix issues |
+| `yarn test` | Run the unit tests (Vitest, a few seconds). `yarn test:watch` reruns them on changes, `yarn test:coverage` adds a coverage report |
 | `yarn build` | Build the plugin into `dist/` |
 | `yarn verify` | Check the built package (`package.json` exports and files) before publishing |
-| `yarn playground:smoke` | Build the playground admin with the plugin, start it on port 1339 with a separate database, schedule publish/unpublish actions for a collection type and a single type, and check that they run and that all hooks are called. Add `--skip-build` to skip the admin build. Your own playground database is not touched. |
+| `yarn playground:smoke` | Build the playground admin with the plugin, start it on port 1339 with a separate database, schedule publish/unpublish actions for a collection type and a single type, and check that they run and that all hooks are called. It also checks that each locale of a localized entry gets its own action, and that admin users can only manage actions of content types (and locales) they may publish (#212). Add `--skip-build` to skip the admin build. Your own playground database is not touched. |
 
 ### 📦 Consumer test
 The playground loads the plugin straight from this repository and shares its `node_modules`. To test the plugin the way users install it, run:
@@ -108,6 +110,19 @@ This builds and packs the plugin with `npm pack`, creates a fresh Strapi app in 
 - `--clean` also removes the app's `node_modules` for a fully fresh install.
 
 CI runs the consumer test for the minimum Strapi version on Node.js 20 and the current Strapi version on Node.js 24.
+
+### 🧪 Unit tests
+The unit tests run without a running Strapi. The ones in [`tests/server`](./tests/server) test the server code: [`tests/helpers/strapi.js`](./tests/helpers/strapi.js) provides a fake `strapi` object whose APIs are Vitest mocks. The ones in [`tests/admin`](./tests/admin) test plain admin helpers (no React components). The server tests cover what the publisher does with an action:
+- **scheduling** (`action-service`): creating, rescheduling and cancelling an action adds, replaces and removes its cron job, and the cron job executes the latest version of the action;
+- **executing** (`publication-service`): when an entry is (un)published, the `before*` hooks that can cancel it, the `after*` hooks, the `entry.publish`/`entry.unpublish` events, `publishedAt` set to the scheduled time, and removing the action once it ran, was cancelled or failed;
+- **startup** (`cron-tasks`): overdue actions are executed and future ones scheduled;
+- **validation** (`validate-before-scheduling`): a publish action is refused when the entry is missing required fields, media, relations or component fields, and accepted when they are filled (also to-one relations, #240);
+- **finding the action of one locale** (`action-controller`): `?locale=` becomes a filter, without losing the filters a route middleware added;
+- **permissions** (`permission-service`, `can-manage-action`, `limit-to-readable-content-types`, #212): scheduling, rescheduling and deleting an action requires publish permission on its target (conditions and locale included), and users only see actions of content types they can read;
+- **errors** (`utils/errors`, #244): the errors the plugin throws carry their HTTP status;
+- **plugin setup**: config defaults and validation, routes with their policies and middlewares, the controller methods and services they need, the settings endpoint and the action content type.
+
+Add or update a test when you change one of these. The smoke test still checks that it all works together in a real Strapi.
 
 ### ⏳ Dependency cooldown
 To reduce the risk of installing a freshly published, compromised or broken release, Yarn only installs dependency versions that have been on the npm registry for **at least 7 days** (`npmMinimalAgeGate` in [`.yarnrc.yml`](./.yarnrc.yml)). This also applies to transitive dependencies, and it protects your own machine because the check happens during `yarn install`. [Dependabot](./.github/dependabot.yml) also waits 7 days before proposing an update.
@@ -128,7 +143,7 @@ The exception only applies to that exact version and shows up in the pull reques
 
 ### 🔹 Guidelines:
 - Keep pull requests **small and focused on a single change**.
-- Ensure the **checks pass** (`yarn lint:check`, `yarn build` and `yarn playground:smoke`) before submitting.
+- Ensure the **checks pass** (`yarn lint:check`, `yarn test`, `yarn build` and `yarn playground:smoke`) before submitting.
 - If updating the UI, include **screenshots**.
 - Follow the **Pull Request Template** when submitting a PR.
 - **Discuss major API changes** with maintainers by opening an issue first.

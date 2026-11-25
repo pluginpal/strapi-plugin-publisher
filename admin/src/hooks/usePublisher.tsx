@@ -1,15 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import {
-	useFetchClient,
-	useNotification,
-	useForm,
-	useAPIErrorHandler,
-} from '@strapi/strapi/admin';
+import { useFetchClient, useNotification, useForm, useAPIErrorHandler } from '@strapi/strapi/admin';
 import { useIntl } from 'react-intl';
 import { pluginId } from '../pluginId';
 import { getTrad } from '../utils/getTrad';
-
-const buildQueryKey = (args) => args.filter((a) => a);
+import { getActionParams, getActionQueryKey } from '../utils/actionQuery';
 
 export const usePublisher = () => {
 	const { toggleNotification } = useNotification();
@@ -42,26 +36,16 @@ export const usePublisher = () => {
 				}),
 		});
 
-		if (
-			error.response?.data?.error?.name === 'ValidationError'
-		) {
+		if (error.response?.data?.error?.name === 'ValidationError') {
 			setErrors(formatValidationErrors(error.response?.data?.error));
 		}
 	}
 
-	function getAction(filters = {}) {
+	function getAction(lookup) {
 		return useQuery({
-			queryKey: buildQueryKey([
-				pluginId,
-				'entity-action',
-				filters.entityId,
-				filters.entitySlug,
-				filters.mode,
-			]),
+			queryKey: getActionQueryKey(lookup),
 			queryFn: function () {
-				return get(`/${pluginId}/actions`, {
-					params: { filters },
-				});
+				return get(`/${pluginId}/actions`, { params: getActionParams(lookup) });
 			},
 			select: function ({ data }) {
 				return data.data[0] || false;
@@ -75,13 +59,12 @@ export const usePublisher = () => {
 		},
 		onSuccess: ({ data: response }) => {
 			const { data } = response;
-			const queryKey = buildQueryKey([
-				pluginId,
-				'entity-action',
-				data.entityId,
-				data.entitySlug,
-				data.mode,
-			]);
+			// Without the locale, so the actions of all locales of this entry are refreshed.
+			const queryKey = getActionQueryKey({
+				entityId: data.entityId,
+				entitySlug: data.entitySlug,
+				mode: data.mode,
+			});
 			onSuccessHandler({
 				queryKey,
 				notification: {
@@ -99,13 +82,12 @@ export const usePublisher = () => {
 		},
 		onSuccess: ({ data: response }) => {
 			const { data } = response;
-			const queryKey = buildQueryKey([
-				pluginId,
-				'entity-action',
-				data.entityId,
-				data.entitySlug,
-				data.mode,
-			]);
+			// Without the locale, so the actions of all locales of this entry are refreshed.
+			const queryKey = getActionQueryKey({
+				entityId: data.entityId,
+				entitySlug: data.entitySlug,
+				mode: data.mode,
+			});
 			onSuccessHandler({
 				queryKey,
 				notification: {
@@ -123,10 +105,7 @@ export const usePublisher = () => {
 		},
 		onSuccess: (_response, actionMode) => {
 			const { mode } = actionMode;
-			const queryKey = buildQueryKey([
-				pluginId,
-				'entity-action',
-			]);
+			const queryKey = getActionQueryKey({});
 			onSuccessHandler({
 				queryKey,
 				notification: {

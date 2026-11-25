@@ -1,16 +1,27 @@
 /**
- * Issue #212: admin users may only manage actions of content types they can publish, and only see
- * actions of content types they can read. The test users can only work with articles.
+ * Issue #212: admin users may only manage actions of content types they can publish (including the
+ * locales they can publish), and only see actions of content types they can read. The test users
+ * can only work with articles, or with Dutch pages.
  */
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const { ARTICLE_UID, HOMEPAGE_UID, NO_PUBLISH_USER, PUBLISHER_USER } = require('../lib/config');
+const {
+	ARTICLE_UID,
+	HOMEPAGE_UID,
+	PAGE_UID,
+	NO_PUBLISH_USER,
+	PUBLISHER_USER,
+	DUTCH_PAGE_PUBLISHER_USER,
+} = require('../lib/config');
 const { api, request } = require('../lib/client');
 const {
 	actionData,
 	futureExecuteAt,
 	getDraftArticle,
 	getHomepage,
+	getPage,
+	createUser,
+	contentManagerPermissions,
 	createArticleUser,
 } = require('../lib/fixtures');
 
@@ -128,6 +139,74 @@ describe('Permissions (#212)', () => {
 				userToken
 			);
 			assert.equal(status, 403, `Scheduling a homepage action returned ${status}`);
+		});
+	});
+
+	describe('user who may only publish Dutch pages', () => {
+		let userToken;
+		let page;
+		let action;
+
+		// "About us" ("Over ons" in nl) exists in en and nl; both locales share the documentId.
+		const pageActionData = (locale) => {
+			const body = actionData('unpublish', page.documentId, PAGE_UID);
+			body.data.locale = locale;
+			return body;
+		};
+
+		before(async () => {
+			page = await getPage('Over ons', 'nl');
+			userToken = await createUser(
+				DUTCH_PAGE_PUBLISHER_USER,
+				'Smoke test Dutch pages',
+				contentManagerPermissions(PAGE_UID, ['read', 'publish'], {
+					fields: ['title'],
+					locales: ['nl'],
+				})
+			);
+		});
+
+		after(async () => {
+			if (action) await api('DELETE', `/publisher/actions/${action.documentId}`);
+		});
+
+		it('can schedule and find an action for the Dutch page', async () => {
+			({ data: action } = await api('POST', '/publisher/actions', pageActionData('nl'), userToken));
+			assert.ok(action?.documentId, 'Scheduling a Dutch page action did not return a documentId');
+
+			// Like the admin side panel: the readable content types and the locale are both filters.
+			const query = new URLSearchParams({
+				'filters[mode]': 'unpublish',
+				'filters[entityId]': page.documentId,
+				'filters[entitySlug]': PAGE_UID,
+				locale: 'nl',
+			});
+			const { data: found } = await api('GET', `/publisher/actions?${query}`, undefined, userToken);
+			assert.deepEqual(
+				found.map((entry) => entry.documentId),
+				[action.documentId]
+			);
+		});
+
+		it('cannot schedule an action for the English page', async () => {
+			const { status } = await request(
+				'POST',
+				'/publisher/actions',
+				pageActionData('en'),
+				userToken
+			);
+			assert.equal(status, 403, `Scheduling an English page action returned ${status}`);
+		});
+
+		it('cannot move its action to the English page', async () => {
+			assert.ok(action, 'The Dutch page action was not created');
+			const { status } = await request(
+				'PUT',
+				`/publisher/actions/${action.documentId}`,
+				{ data: { locale: 'en' } },
+				userToken
+			);
+			assert.equal(status, 403, `Moving the action to English returned ${status}`);
 		});
 	});
 });

@@ -16,6 +16,14 @@ updates:
       babel:
         patterns:
           - '@babel/*'
+      # @vitest/coverage-v8 needs exactly the same vitest version, and vite is only pinned for
+      # vitest's peer range, so update them together (majors too). Must come before
+      # dev-dependencies: a dependency goes into the first group it matches.
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - 'vite'
       dev-dependencies:
         dependency-type: development
         update-types: [minor, patch]

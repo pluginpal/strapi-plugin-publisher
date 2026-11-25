@@ -24,5 +24,12 @@ module.exports = {
 			files: ['admin/**/*'],
 			...frontendESLint,
 		},
+		{
+			// Vitest unit tests and config (ES modules with top-level await)
+			files: ['tests/**/*.js', 'vitest.config.mjs'],
+			env: { es2022: true, node: true },
+			parserOptions: { ecmaVersion: 2022, sourceType: 'module' },
+			extends: ['eslint:recommended', 'prettier'],
+		},
 	],
 };

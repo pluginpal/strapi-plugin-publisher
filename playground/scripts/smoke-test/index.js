@@ -13,6 +13,8 @@
  *   - endpoints:   the admin panel and the plugin settings endpoint;
  *   - scheduling:  publish and unpublish actions for a collection type and a single type run on
  *                  schedule, are removed and call all publisher hooks;
+ *   - locales:     every locale of a localized entry has its own actions, which the admin finds
+ *                  with `?locale=`;
  *   - permissions: admin users can only manage actions of content types they may publish, and
  *                  only see actions of content types they may read (issue #212).
  *
@@ -44,4 +46,5 @@ process.on('exit', (code) => {
 
 require('./tests/endpoints');
 require('./tests/scheduling');
+require('./tests/locales');
 require('./tests/permissions');

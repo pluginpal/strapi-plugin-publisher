@@ -2,7 +2,7 @@
  * Test data: entries seeded by playground/src/index.js, scheduled actions and limited admin users.
  */
 const assert = require('node:assert/strict');
-const { ARTICLE_UID, HOMEPAGE_UID } = require('./config');
+const { ARTICLE_UID, HOMEPAGE_UID, PAGE_UID } = require('./config');
 const { api } = require('./client');
 
 /** A date far in the future, so the action doesn't run during the test. */
@@ -48,23 +48,27 @@ const getHomepage = async () => {
 	return homepage;
 };
 
+/** A localized page from the playground seed, in the given locale. */
+const getPage = async (title, locale) => {
+	const { results } = await api(
+		'GET',
+		`/content-manager/collection-types/${PAGE_UID}?locale=${locale}&pageSize=100`
+	);
+	const page = results.find((entry) => entry.title === title);
+	assert.ok(page, `No ${locale} page "${title}" found (the playground seed creates it)`);
+	return page;
+};
+
 /**
- * Creates and registers an admin user with a new role that has the given Content Manager actions
- * on articles only, and returns their token.
+ * Creates and registers an admin user with a new role that has these permissions, and returns
+ * their token.
  */
-const createArticleUser = async ({ email, password }, roleName, actions) => {
+const createUser = async ({ email, password }, roleName, permissions) => {
 	const { data: role } = await api('POST', '/admin/roles', {
 		name: roleName,
 		description: 'Smoke test',
 	});
-	await api('PUT', `/admin/roles/${role.id}/permissions`, {
-		permissions: actions.map((action) => ({
-			action: `plugin::content-manager.explorer.${action}`,
-			subject: ARTICLE_UID,
-			properties: action === 'publish' ? {} : { fields: ['title', 'excerpt'] },
-			conditions: [],
-		})),
-	});
+	await api('PUT', `/admin/roles/${role.id}/permissions`, { permissions });
 	const { data: user } = await api('POST', '/admin/users', {
 		email,
 		firstname: 'Smoke',
@@ -79,11 +83,37 @@ const createArticleUser = async ({ email, password }, roleName, actions) => {
 	return registration.token;
 };
 
+/** Content Manager permissions for these actions on one content type. */
+const contentManagerPermissions = (subject, actions, { fields, locales } = {}) =>
+	actions.map((action) => ({
+		action: `plugin::content-manager.explorer.${action}`,
+		subject,
+		properties: {
+			...(action === 'publish' ? {} : { fields }),
+			...(locales ? { locales } : {}),
+		},
+		conditions: [],
+	}));
+
+/**
+ * Creates and registers an admin user with a new role that has the given Content Manager actions
+ * on articles only, and returns their token.
+ */
+const createArticleUser = (credentials, roleName, actions) =>
+	createUser(
+		credentials,
+		roleName,
+		contentManagerPermissions(ARTICLE_UID, actions, { fields: ['title', 'excerpt'] })
+	);
+
 module.exports = {
 	futureExecuteAt,
 	actionData,
 	getDraftArticle,
 	getArticleStatus,
 	getHomepage,
+	getPage,
+	createUser,
+	contentManagerPermissions,
 	createArticleUser,
 };

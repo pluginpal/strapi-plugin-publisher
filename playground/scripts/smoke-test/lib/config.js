@@ -44,8 +44,13 @@ module.exports = {
 		email: 'smoke-test-publisher@playground.test',
 		password: 'SmokeTestPublisher123!',
 	},
+	DUTCH_PAGE_PUBLISHER_USER: {
+		email: 'smoke-test-dutch-pages@playground.test',
+		password: 'SmokeTestDutchPages123!',
+	},
 	ARTICLE_UID: 'api::article.article',
 	HOMEPAGE_UID: 'api::homepage.homepage',
+	PAGE_UID: 'api::page.page',
 	env: {
 		...process.env,
 		HOST: '127.0.0.1',
