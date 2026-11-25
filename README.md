@@ -29,6 +29,16 @@ npm install strapi-plugin-publisher
 yarn add strapi-plugin-publisher
 ```
 
+### Existing schedules and locales
+
+On startup, Publisher assigns the current default locale to existing actions whose
+`locale` is `null` and whose target content type uses i18n. This happens before
+overdue actions execute or future cron jobs are scheduled. These actions remain
+visible, editable, and cancellable in that locale's Publisher panel, with the same
+IDs and execution times. Actions with an explicit locale and actions for
+non-localized content types are unchanged. Restarting is safe: only null locales
+are filled in.
+
 ## Configuration
 
 ### Enable the plugin
