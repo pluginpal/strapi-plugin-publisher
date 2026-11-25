@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import emitService from '../../server/services/emit-service';
+import permissionService from '../../server/services/permission-service';
 import settingsService from '../../server/services/settings-service';
 
 export const ACTION_UID = 'plugin::publisher.action';
@@ -39,6 +40,20 @@ const createPopulateBuilder = () => {
 };
 
 /**
+ * A fake of the content manager's `permission-checker` service. `create()` always returns the same
+ * checker (`permissionChecker.checker`), whose `cannot.publish(entity)` uses `canPublish(entity)`.
+ * Like the real one, it is called without an entity to check whether the user has any publish
+ * permission on the content type, and with an entity to check its conditions and locale.
+ */
+export const createPermissionChecker = ({ canPublish = () => true, permissionQuery = {} } = {}) => {
+	const checker = {
+		cannot: { publish: vi.fn((entity) => !canPublish(entity)) },
+		sanitizedQuery: { publish: vi.fn(async () => permissionQuery) },
+	};
+	return { create: vi.fn(() => checker), checker };
+};
+
+/**
  * Plugin config as it ends up after Strapi merged the user config with the defaults
  * (server/config/index.js). All hooks are mocks.
  */
@@ -61,11 +76,12 @@ export const createConfig = (overrides = {}) => ({
  * It is also installed as `global.strapi`, because the plugin uses the global in some places.
  *
  * - `services` replaces or adds plugin services (e.g. a mocked publicationService); the real
- *   settingsService and emitService are used by default.
+ *   settingsService, emitService and permissionService are used by default.
  * - `contentTypes` and `components` are the models, keyed by uid (`strapi.contentType(uid)`,
  *   `strapi.contentTypes`, `strapi.components`).
  * - `contentManagerServices` replaces or adds services of the content-manager plugin; by default
- *   it only has a fake `populate-builder` (see createPopulateBuilder).
+ *   it only has a fake `populate-builder` (see createPopulateBuilder). Pass a
+ *   `permission-checker` (createPermissionChecker) to use the permissionService.
  *
  * Like in Strapi, `strapi.plugin(name)` is undefined for plugins other than `publisher` and
  * `content-manager`, and the cron service keeps every job that is added, also when two jobs have
@@ -154,6 +170,7 @@ export const createStrapi = ({
 	Object.assign(pluginServices, {
 		settingsService: settingsService({ strapi }),
 		emitService: emitService({ strapi }),
+		permissionService: permissionService({ strapi }),
 		...services,
 	});
 

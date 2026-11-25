@@ -10,7 +10,7 @@ export default factories.createCoreController('plugin::publisher.action', ({ str
 	 * `filters[locale]`. Support `?locale=` here so the admin can find the action of one locale.
 	 */
 	async find(ctx) {
-		const { locale, ...query } = ctx.query ?? {};
+		const locale = ctx.query?.locale;
 		if (!locale) {
 			return super.find(ctx);
 		}
@@ -18,7 +18,11 @@ export default factories.createCoreController('plugin::publisher.action', ({ str
 			return ctx.badRequest('The locale must be a string.');
 		}
 
-		ctx.query = query;
+		// Remove the locale from the parsed query in place. Assigning `ctx.query` turns the query back
+		// into a query string, and parsing that again turns lists longer than the `strapi::query`
+		// arrayLimit (default 100) into objects, which Strapi then silently drops as filters. That
+		// includes filters a route middleware added, like the readable content types (issue #212).
+		delete ctx.query.locale;
 		await this.validateQuery(ctx);
 		const sanitizedQuery = await this.sanitizeQuery(ctx);
 		const { results, pagination } = await strapi

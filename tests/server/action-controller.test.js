@@ -1,6 +1,7 @@
 import { errors } from '@strapi/utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import actionController from '../../server/controllers/action-controller';
+import { createKoaContext } from '../helpers/koa';
 import { createStrapi } from '../helpers/strapi';
 
 describe('action controller find', () => {
@@ -61,6 +62,19 @@ describe('action controller find', () => {
 			meta: { pagination: { page: 1 } },
 		});
 		expect(coreFind).not.toHaveBeenCalled();
+	});
+
+	it('keeps long filter lists in the query when it removes the locale', async () => {
+		// A route middleware can add filters to the parsed query, e.g. the content types the user may
+		// read (#212). Lists longer than the arrayLimit (100) of Strapi's query parser don't survive
+		// a round trip through the query string, so the locale has to be removed in place.
+		const entitySlugs = Array.from({ length: 150 }, (_, i) => `api::type-${i}.type-${i}`);
+		const ctx = createKoaContext({ locale: 'nl' });
+		ctx.query.filters = { entitySlug: { $in: entitySlugs } };
+
+		await controller.find(ctx);
+
+		expect(validatedQuery).toEqual({ filters: { entitySlug: { $in: entitySlugs } } });
 	});
 
 	it('only filters on the locale when there are no other filters', async () => {

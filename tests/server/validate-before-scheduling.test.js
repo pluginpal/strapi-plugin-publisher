@@ -70,6 +70,8 @@ describe('validation before scheduling a publish action', () => {
 	const expectValidationErrors = async (context, paths) => {
 		const error = await validateBeforeScheduling(context, next).catch((e) => e);
 		expect(error).toBeInstanceOf(errors.ValidationError);
+		// The status keeps the response a 400 when the app has several @strapi/utils copies (#244).
+		expect(error.status).toBe(400);
 		expect(error.details.errors.map((e) => e.path)).toEqual(paths);
 		expect(next).not.toHaveBeenCalled();
 		return error;
@@ -143,6 +145,7 @@ describe('validation before scheduling a publish action', () => {
 		const error = await validateBeforeScheduling(publishAction({ locale }), next).catch((e) => e);
 
 		expect(error).toBeInstanceOf(errors.NotFoundError);
+		expect(error.status).toBe(404);
 		expect(error.message).toBe(message);
 		expect(next).not.toHaveBeenCalled();
 	});

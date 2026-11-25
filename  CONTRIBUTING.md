@@ -96,7 +96,7 @@ Every pull request runs the [CI workflow](./.github/workflows/ci.yml). You can r
 | `yarn test` | Run the unit tests (Vitest, a few seconds). `yarn test:watch` reruns them on changes, `yarn test:coverage` adds a coverage report |
 | `yarn build` | Build the plugin into `dist/` |
 | `yarn verify` | Check the built package (`package.json` exports and files) before publishing |
-| `yarn playground:smoke` | Build the playground admin with the plugin, start it on port 1339 with a separate database, schedule publish/unpublish actions for a collection type and a single type, and check that they run and that all hooks are called. Add `--skip-build` to skip the admin build. Your own playground database is not touched. |
+| `yarn playground:smoke` | Build the playground admin with the plugin, start it on port 1339 with a separate database, schedule publish/unpublish actions for a collection type and a single type, and check that they run and that all hooks are called. It also checks that each locale of a localized entry gets its own action, and that admin users can only manage actions of content types (and locales) they may publish (#212). Add `--skip-build` to skip the admin build. Your own playground database is not touched. |
 
 ### 📦 Consumer test
 The playground loads the plugin straight from this repository and shares its `node_modules`. To test the plugin the way users install it, run:
@@ -117,7 +117,10 @@ The unit tests run without a running Strapi. The ones in [`tests/server`](./test
 - **executing** (`publication-service`): when an entry is (un)published, the `before*` hooks that can cancel it, the `after*` hooks, the `entry.publish`/`entry.unpublish` events, `publishedAt` set to the scheduled time, and removing the action once it ran, was cancelled or failed;
 - **startup** (`cron-tasks`): overdue actions are executed and future ones scheduled;
 - **validation** (`validate-before-scheduling`): a publish action is refused when the entry is missing required fields, media, relations or component fields, and accepted when they are filled (also to-one relations, #240);
-- **plugin setup**: config defaults and validation, routes and the controller methods and services they need, the settings endpoint and the action content type.
+- **finding the action of one locale** (`action-controller`): `?locale=` becomes a filter, without losing the filters a route middleware added;
+- **permissions** (`permission-service`, `can-manage-action`, `limit-to-readable-content-types`, #212): scheduling, rescheduling and deleting an action requires publish permission on its target (conditions and locale included), and users only see actions of content types they can read;
+- **errors** (`utils/errors`, #244): the errors the plugin throws carry their HTTP status;
+- **plugin setup**: config defaults and validation, routes with their policies and middlewares, the controller methods and services they need, the settings endpoint and the action content type.
 
 Add or update a test when you change one of these. The smoke test still checks that it all works together in a real Strapi.
 

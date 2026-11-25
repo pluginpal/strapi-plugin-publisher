@@ -5,7 +5,7 @@
 		"singularName": "article",
 		"pluralName": "articles",
 		"displayName": "Article",
-		"description": "Collection type for testing scheduled (un)publishing"
+		"description": "Collection type for testing scheduled (un)publishing, with relations, components and a dynamic zone"
 	},
 	"options": {
 		"draftAndPublish": true
@@ -20,8 +20,16 @@
 			"type": "uid",
 			"targetField": "title"
 		},
-		"content": {
-			"type": "richtext"
+		"excerpt": {
+			"type": "text",
+			"maxLength": 300
+		},
+		"cover": {
+			"type": "media",
+			"multiple": false,
+			"allowedTypes": [
+				"images"
+			]
 		},
 		"author": {
 			"type": "relation",
@@ -29,6 +37,27 @@
 			"target": "api::author.author",
 			"inversedBy": "articles",
 			"required": true
+		},
+		"categories": {
+			"type": "relation",
+			"relation": "manyToMany",
+			"target": "api::category.category",
+			"inversedBy": "articles"
+		},
+		"seo": {
+			"type": "component",
+			"component": "shared.seo",
+			"repeatable": false,
+			"required": true
+		},
+		"blocks": {
+			"type": "dynamiczone",
+			"components": [
+				"blocks.rich-text",
+				"blocks.quote",
+				"blocks.media",
+				"blocks.call-to-action"
+			]
 		}
 	}
 }

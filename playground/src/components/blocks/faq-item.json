@@ -1,0 +1,18 @@
+{
+	"collectionName": "components_blocks_faq_items",
+	"info": {
+		"displayName": "FAQ item",
+		"icon": "question"
+	},
+	"options": {},
+	"attributes": {
+		"question": {
+			"type": "string",
+			"required": true
+		},
+		"answer": {
+			"type": "richtext",
+			"required": true
+		}
+	}
+}

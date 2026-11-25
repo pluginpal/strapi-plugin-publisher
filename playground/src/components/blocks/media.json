@@ -1,0 +1,20 @@
+{
+	"collectionName": "components_blocks_media",
+	"info": {
+		"displayName": "Media",
+		"description": "Image or video with a required file; useful to test validation before scheduling",
+		"icon": "picture"
+	},
+	"options": {},
+	"attributes": {
+		"file": {
+			"type": "media",
+			"multiple": false,
+			"required": true,
+			"allowedTypes": ["images", "videos"]
+		},
+		"caption": {
+			"type": "string"
+		}
+	}
+}

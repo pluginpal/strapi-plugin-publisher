@@ -70,6 +70,27 @@ describe('routes', () => {
 		expect(routes['content-api'].routes).toEqual(expect.arrayContaining(crud));
 	});
 
+	describe('admin route permissions (#212)', () => {
+		const adminRoute = (method, path) =>
+			routes.admin.routes.find((route) => route.method === method && route.path === path);
+
+		it.each([
+			['POST', '/actions'],
+			['PUT', '/actions/:id'],
+			['DELETE', '/actions/:id'],
+		])('%s %s requires publish permission on the target', (method, path) => {
+			expect(adminRoute(method, path).config.policies).toEqual([
+				'plugin::publisher.can-manage-action',
+			]);
+		});
+
+		it('GET /actions only lists actions of content types the user can read', () => {
+			expect(adminRoute('GET', '/actions').config.middlewares).toEqual([
+				'plugin::publisher.limit-to-readable-content-types',
+			]);
+		});
+	});
+
 	it('requires authentication on every route', () => {
 		for (const router of Object.values(routes)) {
 			for (const route of router.routes) {
@@ -89,6 +110,23 @@ describe('plugin entry (server/index.js)', () => {
 				const controller = plugin.controllers[controllerName];
 				const instance = typeof controller === 'function' ? controller({ strapi }) : controller;
 				expect(instance?.[method], handler).toBeTypeOf('function');
+			}
+		}
+	});
+
+	it('registers the policies and middlewares the routes use', () => {
+		const prefix = `plugin::${pluginId}.`;
+		for (const router of Object.values(plugin.routes)) {
+			for (const { config: routeConfig = {} } of router.routes) {
+				for (const [kind, names] of [
+					['policies', routeConfig.policies ?? []],
+					['middlewares', routeConfig.middlewares ?? []],
+				]) {
+					for (const name of names) {
+						expect(name.startsWith(prefix), name).toBe(true);
+						expect(plugin[kind][name.slice(prefix.length)], name).toBeTypeOf('function');
+					}
+				}
 			}
 		}
 	});
