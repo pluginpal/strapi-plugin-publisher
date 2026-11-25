@@ -13,7 +13,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          always-auth: true
           node-version: 22
           cache: 'yarn'
           registry-url: 'https://registry.npmjs.org/'
