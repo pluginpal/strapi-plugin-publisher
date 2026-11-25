@@ -1,4 +1,4 @@
-import { errors } from '@strapi/utils';
+import { NotFoundError, PolicyError, ValidationError } from '../utils/errors';
 
 const READ_ACTION = 'plugin::content-manager.explorer.read';
 
@@ -37,7 +37,7 @@ export default ({ strapi }) => ({
 	async assertCanSchedule(userAbility, { entitySlug, entityId, locale }, { allowMissingEntity = false } = {}) {
 		const contentType = typeof entitySlug === 'string' ? strapi.contentType(entitySlug) : undefined;
 		if (!contentType || !contentType.options?.draftAndPublish) {
-			throw new errors.ValidationError(`"${entitySlug}" is not a content type with draft & publish enabled.`);
+			throw new ValidationError(`"${entitySlug}" is not a content type with draft & publish enabled.`);
 		}
 
 		const permissionChecker = this.getPermissionChecker(userAbility, entitySlug);
@@ -46,7 +46,7 @@ export default ({ strapi }) => ({
 		// PolicyError (a 403) is used because Strapi replaces the message of other ForbiddenErrors
 		// with a generic "Forbidden", and the admin shows this message in a notification.
 		if (permissionChecker.cannot.publish()) {
-			throw new errors.PolicyError('You are not allowed to publish or unpublish this content type.');
+			throw new PolicyError('You are not allowed to publish or unpublish this content type.');
 		}
 
 		// Conditions (e.g. "is creator") and locale restrictions are checked against the entity itself,
@@ -74,11 +74,11 @@ export default ({ strapi }) => ({
 			if (allowMissingEntity) {
 				return;
 			}
-			throw new errors.NotFoundError(`Document "${entityId}" of type "${entitySlug}" was not found.`);
+			throw new NotFoundError(`Document "${entityId}" of type "${entitySlug}" was not found.`);
 		}
 
 		if (permissionChecker.cannot.publish(entity)) {
-			throw new errors.PolicyError('You are not allowed to publish or unpublish this entry.');
+			throw new PolicyError('You are not allowed to publish or unpublish this entry.');
 		}
 	},
 });

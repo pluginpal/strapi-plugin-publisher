@@ -39,7 +39,12 @@ const buildAdmin = () => {
 	progress(`Building the admin panel of ${config.appName} with the plugin`);
 	const build = spawnSync(config.strapiBin, ['build'], {
 		cwd: config.appDir,
-		env: config.env,
+		// The admin build of older Strapi versions runs close to Node.js 20's default heap limit
+		// (~2 GB) and sometimes ran out of memory in CI.
+		env: {
+			...config.env,
+			NODE_OPTIONS: [config.env.NODE_OPTIONS, '--max-old-space-size=4096'].filter(Boolean).join(' '),
+		},
 		stdio: 'inherit',
 	});
 	if (build.status !== 0) {
